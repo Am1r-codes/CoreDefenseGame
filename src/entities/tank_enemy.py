@@ -1,0 +1,1 @@
+"""Tank enemy placeholder."""

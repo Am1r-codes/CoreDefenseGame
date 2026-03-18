@@ -1,0 +1,1 @@
+"""Fast enemy placeholder."""

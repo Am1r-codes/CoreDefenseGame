@@ -1,0 +1,1 @@
+"""Core Collapse source package."""

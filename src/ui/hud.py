@@ -1,0 +1,1 @@
+"""HUD drawing placeholder."""

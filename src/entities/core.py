@@ -1,0 +1,1 @@
+"""Energy core entity placeholder."""
