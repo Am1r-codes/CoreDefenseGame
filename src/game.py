@@ -6,6 +6,9 @@ from src.entities.player import Player
 from src.entities.projectile import ProjectileBase
 from src.managers.wave_manager import WaveManager
 from src.ui.hud import HUD
+from src.ui.menu import MenuScreen
+from src.ui.game_over import GameOverScreen
+
 
 class Game:
     """Main game object that controls the window and game loop."""
@@ -18,21 +21,32 @@ class Game:
         pygame.display.set_caption("Core Collapse")     # titel venster
         self.clock = pygame.time.Clock()                # nodig voor FPS
         self.running = True                             # game loop moet doorgaan
-        
+
         self.font = pygame.font.SysFont(None, 36)
+        self.hud = HUD(self.width, self.font)
+
+        # scherm-states: menu, playing (= self), game_over
+        self.menu_screen = MenuScreen(self)
+        self.game_over_screen = GameOverScreen(self)
+        self.active_screen = self.menu_screen           # start op menu
+
+    def start_playing(self) -> None:
+        """Reset gameplay en schakel naar playing state."""
+        self._reset_gameplay()
+        self.active_screen = self                       # Game zelf is de playing screen
+
+    def _reset_gameplay(self) -> None:
+        """Initialiseer of reset alle gameplay objecten."""
         self.brain = Brain(self.width // 2, self.height // 2)
-        
         self.enemies = []
         self.wave_manager = WaveManager(self.width, self.height)
-
-        self.player = Player(self.width // 2, self.height // 2 + 100)    # speler start onder het brein
-        self.projectiles: list[ProjectileBase] = []       # polymorphe lijst: elk projectiel-type werkt
+        self.player = Player(self.width // 2, self.height // 2 + 100)
+        self.projectiles: list[ProjectileBase] = []
 
         self.score = 0
         self._combo_multiplier = 1                      # combo vermenigvuldiger
         self._combo_timer = 0                           # frames sinds laatste kill
 
-        self.hud = HUD(self.width, self.font)
         self.damage_texts = []                          # lijst waar je alle tijdelijke damage teksten opslaat
         self.score_texts = []                           # zwevende "+X pts" bij kill positie
 
@@ -126,6 +140,12 @@ class Game:
             st["timer"] -= 1
         self.score_texts = [s for s in self.score_texts if s["timer"] > 0]
 
+        # game over check
+        if self.brain.health <= 0:
+            self.game_over_screen.set_results(self.score, self.wave_manager.wave_number)
+            self.active_screen = self.game_over_screen
+            return
+
     def draw(self) -> None:                             # tekent alles op het scherm
         self.screen.fill((20, 20, 30))                  # maakt achtergrond donker
         self.brain.draw(self.screen, self.font)
@@ -162,13 +182,12 @@ class Game:
             score_surface = self.font.render(st["text"], True, st['color'])
             self.screen.blit(score_surface, (int(st["x"]), int(st["y"])))
 
-        pygame.display.flip()                           # laat nieuw frame zien
-
     def run(self) -> None:                              # main game loop: zolang running = True: steed opnieuw dit
         while self.running:
             self.clock.tick(60)                         # 60 frames per second
-            self.handle_events()
-            self.update()
-            self.draw()
+            self.active_screen.handle_events()
+            self.active_screen.update()
+            self.active_screen.draw()
+            pygame.display.flip()                       # laat nieuw frame zien
 
         pygame.quit()
