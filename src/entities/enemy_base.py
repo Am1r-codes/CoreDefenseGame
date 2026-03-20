@@ -15,6 +15,7 @@ class EnemyBase:
         self.radius = 10
         self.color = (80, 150, 255)         # blauw
         self.damage = 1
+        self.score_value = 10              # punten bij kill
 
     def update(self, target_x: float, target_y: float) -> None:         # beweegt naar brein
         dx = target_x - self.x
@@ -46,6 +47,7 @@ class NoiseEnemy(EnemyBase):
         super().__init__(x, y, speed=4)
         self.color = (255, 150, 50)             # oranje
         self.damage = 1
+        self.score_value = 25              # snel, moeilijk te raken
     
     def draw(self, screen: pygame.Surface) -> None:
         x, y = int(self.x), int(self.y)
@@ -65,6 +67,7 @@ class BiasEnemy(EnemyBase):
         self.radius = 20
         self.color = (80, 200, 120)              # groen
         self.damage = 3
+        self.score_value = 30              # tanky
 
     def draw(self, screen: pygame.Surface) -> None:
         x, y = int(self.x), int(self.y)
@@ -79,6 +82,7 @@ class HallucinationEnemy(EnemyBase):
         self.color = (255, 220, 50)                    # geel
         self.damage = 2
         self.radius = 14
+        self.score_value = 20              # slingert, onvoorspelbaar
 
     def update(self, target_x: float, target_y: float) -> None:     # moet random naar brain gaan
         dx = target_x - self.x
@@ -108,6 +112,7 @@ class OverfittingEnemy(EnemyBase):
         self.color = (255, 60, 60)   # rood
         self.damage = 5
         self.radius = 26
+        self.score_value = 50              # groot en gevaarlijk
 
     def draw(self, screen: pygame.Surface) -> None:
         x, y = int(self.x), int(self.y)

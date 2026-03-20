@@ -28,8 +28,13 @@ class Game:
         self.player = Player(self.width // 2, self.height // 2 + 100)    # speler start onder het brein
         self.projectiles: list[ProjectileBase] = []       # polymorphe lijst: elk projectiel-type werkt
 
+        self.score = 0
+        self._combo_multiplier = 1                      # combo vermenigvuldiger
+        self._combo_timer = 0                           # frames sinds laatste kill
+
         self.hud = HUD(self.width, self.font)
         self.damage_texts = []                          # lijst waar je alle tijdelijke damage teksten opslaat
+        self.score_texts = []                           # zwevende "+X pts" bij kill positie
 
     def handle_events(self) -> None:                    # kijkt naar gebeurtenissen van pygame
         for event in pygame.event.get():
@@ -58,6 +63,12 @@ class Game:
             projectile.update()
         self.projectiles = [p for p in self.projectiles if not p.is_off_screen(self.width, self.height)]
 
+        # combo timer bijhouden
+        if self._combo_timer > 0:
+            self._combo_timer -= 1
+        else:
+            self._combo_multiplier = 1                  # reset na 3 sec zonder kill
+
         # kogel-enemy botsing
         remaining_projectiles = []
         for projectile in self.projectiles:
@@ -65,6 +76,22 @@ class Game:
             for enemy in self.enemies:
                 if projectile.collides_with_enemy(enemy.x, enemy.y, enemy.radius):
                     self.enemies.remove(enemy)          # enemy verdwijnt bij hit
+
+                    # score toekennen met combo
+                    points = enemy.score_value * self._combo_multiplier
+                    self.score += points
+                    self._combo_multiplier = min(self._combo_multiplier + 1, 8)   # max 8x
+                    self._combo_timer = 180             # 3 seconden bij 60 FPS
+
+                    # zwevende score tekst op kill positie
+                    self.score_texts.append({
+                        'x': enemy.x,
+                        'y': enemy.y,
+                        'text': f"+{points}",
+                        'timer': 50,
+                        'color': (0, 220, 255)
+                    })
+
                     hit = True
                     break
             if not hit:
@@ -94,6 +121,11 @@ class Game:
             dmg["timer"] -= 1
         self.damage_texts = [d for d in self.damage_texts if d["timer"] > 0]
 
+        for st in self.score_texts:
+            st["y"] -= 1
+            st["timer"] -= 1
+        self.score_texts = [s for s in self.score_texts if s["timer"] > 0]
+
     def draw(self) -> None:                             # tekent alles op het scherm
         self.screen.fill((20, 20, 30))                  # maakt achtergrond donker
         self.brain.draw(self.screen, self.font)
@@ -108,6 +140,7 @@ class Game:
         self.player.draw(self.screen)
         self.hud.draw_enemy_legend(self.screen)         # legenda
         self.hud.draw_wave_counter(self.screen, self.wave_manager.wave_number)
+        self.hud.draw_score(self.screen, self.score, self._combo_multiplier)
 
         # "Wave X" tekst tijdens pauze tussen waves
         if self.wave_manager.is_between_waves and self.wave_manager.wave_number < 1:
@@ -124,6 +157,10 @@ class Game:
         for dmg in self.damage_texts:
             text_surface = self.font.render(dmg["text"], True, dmg['color'])
             self.screen.blit(text_surface, (dmg["x"], dmg["y"]))
+
+        for st in self.score_texts:
+            score_surface = self.font.render(st["text"], True, st['color'])
+            self.screen.blit(score_surface, (int(st["x"]), int(st["y"])))
 
         pygame.display.flip()                           # laat nieuw frame zien
 

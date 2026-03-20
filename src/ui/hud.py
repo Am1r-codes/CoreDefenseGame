@@ -49,3 +49,13 @@ class HUD:
         """Toon huidige wave nummer links bovenin."""
         wave_text = self.font.render(f"Wave: {wave_number}", True, (255, 255, 255))
         screen.blit(wave_text, (20, 65))
+
+    def draw_score(self, screen: pygame.Surface, score: int, combo: int) -> None:
+        """Toon score en combo multiplier links bovenin."""
+        score_text = self.font.render(f"Score: {score}", True, (255, 255, 255))
+        screen.blit(score_text, (20, 100))
+
+        if combo > 1:
+            combo_color = (255, 220, 50)              # geel voor combo
+            combo_text = self.font.render(f"Combo: x{combo}", True, combo_color)
+            screen.blit(combo_text, (20, 135))
