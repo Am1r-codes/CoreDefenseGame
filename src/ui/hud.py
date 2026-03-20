@@ -44,3 +44,8 @@ class HUD:
         # overfitting
         pygame.draw.circle(screen, (255, 60, 60), (x + 20, start_y + 4 * row_gap), 8)
         screen.blit(self.font.render("Overfitting", True, (255, 60, 60)), (x + 40, start_y + 4 * row_gap - 10))
+
+    def draw_wave_counter(self, screen: pygame.Surface, wave_number: int) -> None:
+        """Toon huidige wave nummer links bovenin."""
+        wave_text = self.font.render(f"Wave: {wave_number}", True, (255, 255, 255))
+        screen.blit(wave_text, (20, 65))

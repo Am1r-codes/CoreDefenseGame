@@ -15,7 +15,7 @@ class Brain:
         brain_color = (255, 100, 180)
         line_color = (230, 210, 255)
 
-        health_ratio = self.health / self.max_health                # naam verandert hoe minder punten er zijn 
+        health_ratio = max(0, self.health / self.max_health)          # naam verandert hoe minder punten er zijn
         if health_ratio > 0.75:
             name = "Stable Model"
         elif health_ratio > 0.5:

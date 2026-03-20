@@ -2,7 +2,9 @@
 
 import pygame
 from src.entities.core import Brain
-from src.entities.enemy_base import EnemyBase, NoiseEnemy, BiasEnemy, HallucinationEnemy, OverfittingEnemy
+from src.entities.player import Player
+from src.entities.projectile import ProjectileBase
+from src.managers.wave_manager import WaveManager
 from src.ui.hud import HUD
 
 class Game:
@@ -21,14 +23,10 @@ class Game:
         self.brain = Brain(self.width // 2, self.height // 2)
         
         self.enemies = []
-        
-        self.enemies.append(EnemyBase(50, self.height // 2))    # test enemy links
-        self.enemies.append(EnemyBase(50, 150))
-        self.enemies.append(NoiseEnemy(200, 300))
-        self.enemies.append(BiasEnemy(400, 600))
-        self.enemies.append(HallucinationEnemy(1000, 500))
-        self.enemies.append(OverfittingEnemy(300, 700))
-        self.enemies.append(OverfittingEnemy(100, 700))
+        self.wave_manager = WaveManager(self.width, self.height)
+
+        self.player = Player(self.width // 2, self.height // 2 + 100)    # speler start onder het brein
+        self.projectiles: list[ProjectileBase] = []       # polymorphe lijst: elk projectiel-type werkt
 
         self.hud = HUD(self.width, self.font)
         self.damage_texts = []                          # lijst waar je alle tijdelijke damage teksten opslaat
@@ -38,7 +36,42 @@ class Game:
             if event.type == pygame.QUIT:
                 self.running = False                    # spel stopt als speler op kruisje drukt
 
-    def update(self) -> None:                           # kunnen we later: enemies bewegen + botsing checken + kogels bewegen + score updaten
+        # continu schieten bij ingedrukte muisknop
+        mouse_buttons = pygame.mouse.get_pressed()
+        if mouse_buttons[0]:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            projectile = self.player.try_shoot(mouse_x, mouse_y)
+            if projectile is not None:
+                self.projectiles.append(projectile)
+
+    def update(self) -> None:                           # enemies bewegen + botsing checken + kogels bewegen + score updaten
+        self.wave_manager.update(self.enemies)
+
+        keys = pygame.key.get_pressed()
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        self.player.update(keys, mouse_x, mouse_y,
+                           self.width, self.height,
+                           self.brain.x, self.brain.y, self.brain.radius)
+
+        # kogels updaten en off-screen verwijderen
+        for projectile in self.projectiles:
+            projectile.update()
+        self.projectiles = [p for p in self.projectiles if not p.is_off_screen(self.width, self.height)]
+
+        # kogel-enemy botsing
+        remaining_projectiles = []
+        for projectile in self.projectiles:
+            hit = False
+            for enemy in self.enemies:
+                if projectile.collides_with_enemy(enemy.x, enemy.y, enemy.radius):
+                    self.enemies.remove(enemy)          # enemy verdwijnt bij hit
+                    hit = True
+                    break
+            if not hit:
+                remaining_projectiles.append(projectile)
+        self.projectiles = remaining_projectiles
+
+        # enemies bewegen en brein-botsing
         remaining_enemies = []
         for enemy in self.enemies:
             enemy.update(self.brain.x, self.brain.y)
@@ -52,7 +85,7 @@ class Game:
                     'timer': 60,
                     'color': enemy.color
                 })
-            else: 
+            else:
                 remaining_enemies.append(enemy)
         self.enemies = remaining_enemies
 
@@ -69,7 +102,24 @@ class Game:
         for enemy in self.enemies:
             enemy.draw(self.screen)
 
+        for projectile in self.projectiles:
+            projectile.draw(self.screen)
+
+        self.player.draw(self.screen)
         self.hud.draw_enemy_legend(self.screen)         # legenda
+        self.hud.draw_wave_counter(self.screen, self.wave_manager.wave_number)
+
+        # "Wave X" tekst tijdens pauze tussen waves
+        if self.wave_manager.is_between_waves and self.wave_manager.wave_number < 1:
+            wave_text = self.font.render("Get Ready...", True, (0, 220, 255))
+        elif self.wave_manager.is_between_waves:
+            wave_text = self.font.render(f"Wave {self.wave_manager.wave_number + 1}", True, (0, 220, 255))
+        else:
+            wave_text = None
+
+        if wave_text is not None:
+            text_rect = wave_text.get_rect(center=(self.width // 2, self.height // 2 - 160))
+            self.screen.blit(wave_text, text_rect)
 
         for dmg in self.damage_texts:
             text_surface = self.font.render(dmg["text"], True, dmg['color'])
