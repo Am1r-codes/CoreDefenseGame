@@ -1,21 +1,21 @@
 """Energy core entity placeholder."""
 import pygame
 import copy
+from src.settings import BRAIN_HEALTH, BRAIN_RADIUS, BRAIN_LINE_COLOR, BRAIN_BASE_RGB, HUD_HEALTH_POS, COLOR_WHITE
 
-class Brain: 
+class Brain:
     def __init__(self, x: int, y: int) -> None:
         self.x = x
         self.y = y
-        self.health = 20
+        self.health = BRAIN_HEALTH
         self.max_health = copy.deepcopy(self.health)
-        self.radius = 60
-    
+        self.radius = BRAIN_RADIUS
+
     def draw(self, screen: pygame.Surface, font: pygame.font.Font) -> None:
         """Draw the brain core on the screen."""
-        brain_color = (255, 100, 180)
-        line_color = (230, 210, 255)
+        line_color = BRAIN_LINE_COLOR
 
-        health_ratio = self.health / self.max_health                # naam verandert hoe minder punten er zijn 
+        health_ratio = max(0, self.health / self.max_health)          # naam verandert hoe minder punten er zijn
         if health_ratio > 0.75:
             name = "Stable Model"
         elif health_ratio > 0.5:
@@ -25,9 +25,7 @@ class Brain:
         else:
             name = "Failing System"
 
-        base_red = 200                                          # roder worden naarmate score minder wordt
-        base_green = 120
-        base_blue = 150
+        base_red, base_green, base_blue = BRAIN_BASE_RGB              # roder worden naarmate score minder wordt
 
         red = min(255, int(base_red + (1 - health_ratio) * 80))
         green = int(base_green * health_ratio)
@@ -75,5 +73,5 @@ class Brain:
         pygame.draw.arc(screen, line_color, (self.x + 5, self.y + 0, 28, 22), 0.4, 2.8, 2)
 
     def draw_health(self, screen: pygame.Surface, font: pygame.font.Font) -> None:
-        health_text = font.render(f"Health: {self.health}", True, (255, 255, 255))
-        screen.blit(health_text, (20, 30))
+        health_text = font.render(f"Health: {self.health}", True, COLOR_WHITE)
+        screen.blit(health_text, HUD_HEALTH_POS)

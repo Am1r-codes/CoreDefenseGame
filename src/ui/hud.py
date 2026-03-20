@@ -1,5 +1,11 @@
 """HUD drawing placeholder."""
 import pygame
+from src.settings import (
+    ENEMY_BASE_COLOR, NOISE_COLOR, BIAS_COLOR, HALLUCINATION_COLOR, OVERFITTING_COLOR,
+    COLOR_WHITE, COLOR_COMBO,
+    HUD_MARGIN, HUD_LEGEND_WIDTH, HUD_LEGEND_HEIGHT, HUD_LEGEND_COLOR, HUD_ROW_GAP,
+    HUD_WAVE_POS, HUD_SCORE_POS, HUD_COMBO_POS,
+)
 
 class HUD:
 
@@ -8,39 +14,48 @@ class HUD:
         self.font = font
 
     def draw_enemy_legend(self, screen: pygame.Surface) -> None:
-        margin = 20
-        box_width = 260
-        box_height = 210
-
-        x = self.width - box_width - margin
-        y = 20
+        x = self.width - HUD_LEGEND_WIDTH - HUD_MARGIN
+        y = HUD_MARGIN
 
         # achtergrond
-        pygame.draw.rect(screen, (35, 35, 45), (x, y, box_width, box_height), border_radius=10)
+        pygame.draw.rect(screen, HUD_LEGEND_COLOR, (x, y, HUD_LEGEND_WIDTH, HUD_LEGEND_HEIGHT), border_radius=10)
 
         # titel
-        title = self.font.render("Enemy Types", True, (255, 255, 255))
+        title = self.font.render("Enemy Types", True, COLOR_WHITE)
         screen.blit(title, (x + 15, y + 10))
 
         start_y = y + 60          # iest meer ruimte tussen titel en enemys
-        row_gap = 30
 
         # base
-        pygame.draw.circle(screen, (80, 150, 255), (x + 20, start_y), 8)
-        screen.blit(self.font.render("Corrupted Data", True, (80, 150, 255)), (x + 40, start_y - 10))
+        pygame.draw.circle(screen, ENEMY_BASE_COLOR, (x + 20, start_y), 8)
+        screen.blit(self.font.render("Corrupted Data", True, ENEMY_BASE_COLOR), (x + 40, start_y - 10))
 
         # noise
-        pygame.draw.circle(screen, (255, 150, 50), (x + 20, start_y + row_gap), 8)
-        screen.blit(self.font.render("Noise", True, (255, 150, 50)), (x + 40, start_y  + row_gap - 10))
+        pygame.draw.circle(screen, NOISE_COLOR, (x + 20, start_y + HUD_ROW_GAP), 8)
+        screen.blit(self.font.render("Noise", True, NOISE_COLOR), (x + 40, start_y + HUD_ROW_GAP - 10))
 
         # bias
-        pygame.draw.circle(screen, (80, 200, 120), (x + 20, start_y + 2 * row_gap), 8)
-        screen.blit(self.font.render("Bias", True, (80, 200, 120)), (x + 40, start_y + 2 * row_gap - 10))
+        pygame.draw.circle(screen, BIAS_COLOR, (x + 20, start_y + 2 * HUD_ROW_GAP), 8)
+        screen.blit(self.font.render("Bias", True, BIAS_COLOR), (x + 40, start_y + 2 * HUD_ROW_GAP - 10))
 
         # hallucination
-        pygame.draw.circle(screen, (255, 220, 50), (x + 20, start_y + 3 * row_gap), 8)
-        screen.blit(self.font.render("Hallucination", True, (255, 220, 50)), (x + 40, start_y + 3 * row_gap - 10))
+        pygame.draw.circle(screen, HALLUCINATION_COLOR, (x + 20, start_y + 3 * HUD_ROW_GAP), 8)
+        screen.blit(self.font.render("Hallucination", True, HALLUCINATION_COLOR), (x + 40, start_y + 3 * HUD_ROW_GAP - 10))
 
         # overfitting
-        pygame.draw.circle(screen, (255, 60, 60), (x + 20, start_y + 4 * row_gap), 8)
-        screen.blit(self.font.render("Overfitting", True, (255, 60, 60)), (x + 40, start_y + 4 * row_gap - 10))
+        pygame.draw.circle(screen, OVERFITTING_COLOR, (x + 20, start_y + 4 * HUD_ROW_GAP), 8)
+        screen.blit(self.font.render("Overfitting", True, OVERFITTING_COLOR), (x + 40, start_y + 4 * HUD_ROW_GAP - 10))
+
+    def draw_wave_counter(self, screen: pygame.Surface, wave_number: int) -> None:
+        """Toon huidige wave nummer links bovenin."""
+        wave_text = self.font.render(f"Wave: {wave_number}", True, COLOR_WHITE)
+        screen.blit(wave_text, HUD_WAVE_POS)
+
+    def draw_score(self, screen: pygame.Surface, score: int, combo: int) -> None:
+        """Toon score en combo multiplier links bovenin."""
+        score_text = self.font.render(f"Score: {score}", True, COLOR_WHITE)
+        screen.blit(score_text, HUD_SCORE_POS)
+
+        if combo > 1:
+            combo_text = self.font.render(f"Combo: x{combo}", True, COLOR_COMBO)
+            screen.blit(combo_text, HUD_COMBO_POS)
