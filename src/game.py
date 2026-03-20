@@ -1,4 +1,9 @@
-"""Top-level game loop and coordination."""
+"""Top-level game loop, state management, and coordination.
+
+The Game class serves as both the main coordinator and the playing
+state screen. It manages transitions between menu, playing, and
+game over states using the state pattern via active_screen.
+"""
 
 import pygame
 from src.entities.core import Brain
@@ -16,9 +21,16 @@ from src.settings import (
 
 
 class Game:
-    """Main game object that controls the window and game loop."""
+    """Main game object that controls the window, game loop, and state transitions.
+
+    Acts as the playing state screen itself — its handle_events(),
+    update(), and draw() methods are called directly when the game is
+    in the playing state, using the same interface as MenuScreen and
+    GameOverScreen (state pattern via duck typing).
+    """
 
     def __init__(self) -> None:
+        """Initialize pygame, create the window, HUD, and state screens."""
         pygame.init()
         self.width = SCREEN_WIDTH
         self.height = SCREEN_HEIGHT
@@ -36,12 +48,16 @@ class Game:
         self.active_screen = self.menu_screen           # start op menu
 
     def start_playing(self) -> None:
-        """Reset gameplay en schakel naar playing state."""
+        """Reset all gameplay objects and switch to the playing state."""
         self._reset_gameplay()
         self.active_screen = self                       # Game zelf is de playing screen
 
     def _reset_gameplay(self) -> None:
-        """Initialiseer of reset alle gameplay objecten."""
+        """Initialize or reset all gameplay objects for a new game.
+
+        Creates fresh instances of the brain, player, wave manager,
+        and clears all projectiles, enemies, scores, and floating texts.
+        """
         self.brain = Brain(self.width // 2, self.height // 2)
         self.enemies = []
         self.wave_manager = WaveManager(self.width, self.height)
@@ -56,6 +72,11 @@ class Game:
         self.score_texts = []                           # zwevende "+X pts" bij kill positie
 
     def handle_events(self) -> None:                    # kijkt naar gebeurtenissen van pygame
+        """Process input events during the playing state.
+
+        Handles window close and continuous shooting while the
+        left mouse button is held down.
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False                    # spel stopt als speler op kruisje drukt
@@ -69,6 +90,13 @@ class Game:
                 self.projectiles.append(projectile)
 
     def update(self) -> None:                           # enemies bewegen + botsing checken + kogels bewegen + score updaten
+        """Update all gameplay systems for one frame.
+
+        Advances wave spawning, moves the player and projectiles,
+        checks projectile-enemy and enemy-brain collisions, updates
+        the score and combo multiplier, and triggers game over when
+        the brain's health reaches zero.
+        """
         self.wave_manager.update(self.enemies)
 
         keys = pygame.key.get_pressed()
@@ -152,6 +180,11 @@ class Game:
             return
 
     def draw(self) -> None:                             # tekent alles op het scherm
+        """Render all gameplay elements to the screen.
+
+        Draws the brain, enemies, projectiles, player, HUD elements,
+        wave announcements, and floating damage/score texts.
+        """
         self.screen.fill(BG_COLOR)                      # maakt achtergrond donker
         self.brain.draw(self.screen, self.font)
         self.brain.draw_health(self.screen, self.font)
@@ -188,6 +221,11 @@ class Game:
             self.screen.blit(score_surface, (int(st["x"]), int(st["y"])))
 
     def run(self) -> None:                              # main game loop: zolang running = True: steed opnieuw dit
+        """Run the main game loop until the player quits.
+
+        Ticks at FPS frames per second. Each frame dispatches to
+        the active screen's handle_events, update, and draw methods.
+        """
         while self.running:
             self.clock.tick(FPS)                         # 60 frames per second
             self.active_screen.handle_events()

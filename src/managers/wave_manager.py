@@ -1,4 +1,8 @@
-"""Wave spawning and progression placeholder."""
+"""Wave spawning system with progressive difficulty.
+
+Controls when and where enemies spawn, which types are available,
+and how wave difficulty scales over time.
+"""
 
 import random
 from src.entities.enemy_base import EnemyBase, NoiseEnemy, BiasEnemy, HallucinationEnemy, OverfittingEnemy
@@ -10,9 +14,22 @@ from src.settings import (
 
 
 class WaveManager:
-    """Beheert enemy waves, spawning en progressie."""
+    """Manages enemy wave spawning, timing, and progressive difficulty.
+
+    Enemies are spawned in staggered batches from random positions
+    outside the screen. Each wave introduces more enemies and unlocks
+    tougher types at specific wave thresholds. A short break is given
+    between waves.
+    """
+    # Beheert enemy waves, spawning en progressie.
 
     def __init__(self, screen_width: int, screen_height: int) -> None:
+        """Create a wave manager for the given screen dimensions.
+
+        Args:
+            screen_width: Width of the game window in pixels.
+            screen_height: Height of the game window in pixels.
+        """
         self._screen_width = screen_width
         self._screen_height = screen_height
         self._wave_number = 0
@@ -24,16 +41,23 @@ class WaveManager:
 
     @property
     def wave_number(self) -> int:
-        """Huidige wave nummer, leesbaar voor HUD."""
+        """Return the current wave number for display on the HUD."""
         return self._wave_number
 
     @property
     def is_between_waves(self) -> bool:
-        """True tijdens pauze tussen waves."""
+        """Return True if the game is in a break period between waves."""
         return self._break_timer > 0
 
     def _get_spawn_position(self) -> tuple[float, float]:
-        """Geeft random positie buiten het scherm terug."""
+        """Generate a random spawn position outside the screen edges.
+
+        Picks a random edge (top, bottom, left, right) and returns
+        a position offset beyond that edge by WAVE_SPAWN_MARGIN pixels.
+
+        Returns:
+            A tuple of (x, y) coordinates outside the visible screen.
+        """
         edge = random.choice(["top", "bottom", "left", "right"])
 
         if edge == "top":
@@ -46,7 +70,13 @@ class WaveManager:
             return self._screen_width + WAVE_SPAWN_MARGIN, random.uniform(0, self._screen_height)
 
     def _get_enemy_types(self) -> list[type]:
-        """Bepaalt welke enemy types beschikbaar zijn voor huidige wave."""
+        """Determine which enemy types are unlocked for the current wave.
+
+        New types are added at specific wave thresholds defined in settings.
+
+        Returns:
+            A list of enemy class references available for spawning.
+        """
         types = [EnemyBase]
 
         if self._wave_number >= WAVE_UNLOCK_NOISE:
@@ -61,7 +91,14 @@ class WaveManager:
         return types
 
     def _build_wave(self) -> list[type]:
-        """Bouwt spawn-queue voor de huidige wave, steeds moeilijker."""
+        """Build a spawn queue of enemy classes for the current wave.
+
+        Enemy count scales with the wave number using the formula:
+        WAVE_BASE_COUNT + wave_number * WAVE_COUNT_SCALE.
+
+        Returns:
+            A list of enemy class references to be spawned.
+        """
         available_types = self._get_enemy_types()
         enemy_count = WAVE_BASE_COUNT + self._wave_number * WAVE_COUNT_SCALE
 
@@ -73,13 +110,21 @@ class WaveManager:
         return queue
 
     def _start_next_wave(self) -> None:
-        """Start de volgende wave: verhoog nummer, bouw queue."""
+        """Increment the wave number and build the spawn queue."""
         self._wave_number += 1
         self._spawn_queue = self._build_wave()
         self._spawn_timer = 0
 
     def update(self, enemies: list) -> None:
-        """Update wave state, spawnt enemies geleidelijk. Wordt elk frame aangeroepen."""
+        """Advance the wave state by one frame.
+
+        Handles break countdowns, triggers new waves, and spawns
+        enemies from the queue with staggered timing. Called once
+        per frame from the game loop.
+
+        Args:
+            enemies: The live enemy list to append newly spawned enemies to.
+        """
 
         # pauze tussen waves aftellen
         if self._break_timer > 0:
