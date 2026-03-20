@@ -3,6 +3,10 @@
 import pygame
 import math
 from src.entities.projectile import PlasmaBullet
+from src.settings import (
+    PLAYER_SPEED, PLAYER_RADIUS, PLAYER_COLOR,
+    PLAYER_CORE_COLOR, PLAYER_GLOW_ALPHA, PLAYER_SHOOT_DELAY, COLOR_WHITE,
+)
 
 
 class Player:
@@ -11,12 +15,12 @@ class Player:
     def __init__(self, x: float, y: float) -> None:
         self.x = x
         self.y = y
-        self.speed = 4
-        self.radius = 14
-        self.color = (0, 220, 255)                # cyaan
-        self._angle = 0.0                         # interne hoek richting muis
-        self._shoot_cooldown = 0                  # interne timer tussen schoten
-        self._shoot_delay = 10                    # frames tussen elk schot
+        self.speed = PLAYER_SPEED
+        self.radius = PLAYER_RADIUS
+        self.color = PLAYER_COLOR                        # cyaan
+        self._angle = 0.0                                # interne hoek richting muis
+        self._shoot_cooldown = 0                         # interne timer tussen schoten
+        self._shoot_delay = PLAYER_SHOOT_DELAY           # frames tussen elk schot
 
     def update(self, keys: pygame.key.ScancodeWrapper, mouse_x: int, mouse_y: int,
                screen_width: int, screen_height: int,
@@ -76,15 +80,15 @@ class Player:
 
         # glow effect
         glow_surface = pygame.Surface((self.radius * 4, self.radius * 4), pygame.SRCALPHA)
-        pygame.draw.circle(glow_surface, (0, 220, 255, 35), (self.radius * 2, self.radius * 2), self.radius + 8)
+        pygame.draw.circle(glow_surface, (*PLAYER_COLOR, PLAYER_GLOW_ALPHA), (self.radius * 2, self.radius * 2), self.radius + 8)
         screen.blit(glow_surface, (x - self.radius * 2, y - self.radius * 2))
 
         # hoofdcirkel
         pygame.draw.circle(screen, self.color, (x, y), self.radius)
-        pygame.draw.circle(screen, (180, 240, 255), (x, y), self.radius - 4)     # lichtere kern
+        pygame.draw.circle(screen, PLAYER_CORE_COLOR, (x, y), self.radius - 4)     # lichtere kern
 
         # richtinglijn naar muis
         line_length = self.radius + 10
         end_x = x + int(math.cos(self._angle) * line_length)
         end_y = y + int(math.sin(self._angle) * line_length)
-        pygame.draw.line(screen, (255, 255, 255), (x, y), (end_x, end_y), 3)
+        pygame.draw.line(screen, COLOR_WHITE, (x, y), (end_x, end_y), 3)

@@ -8,6 +8,11 @@ from src.managers.wave_manager import WaveManager
 from src.ui.hud import HUD
 from src.ui.menu import MenuScreen
 from src.ui.game_over import GameOverScreen
+from src.settings import (
+    SCREEN_WIDTH, SCREEN_HEIGHT, FPS, FONT_SIZE, BG_COLOR, COLOR_CYAN,
+    COMBO_MAX, COMBO_DURATION, SCORE_TEXT_TIMER,
+    DAMAGE_TEXT_TIMER, DAMAGE_TEXT_X, DAMAGE_TEXT_Y,
+)
 
 
 class Game:
@@ -15,14 +20,14 @@ class Game:
 
     def __init__(self) -> None:
         pygame.init()
-        self.width = 1000
-        self.height = 700
+        self.width = SCREEN_WIDTH
+        self.height = SCREEN_HEIGHT
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption("Core Collapse")     # titel venster
         self.clock = pygame.time.Clock()                # nodig voor FPS
         self.running = True                             # game loop moet doorgaan
 
-        self.font = pygame.font.SysFont(None, 36)
+        self.font = pygame.font.SysFont(None, FONT_SIZE)
         self.hud = HUD(self.width, self.font)
 
         # scherm-states: menu, playing (= self), game_over
@@ -94,16 +99,16 @@ class Game:
                     # score toekennen met combo
                     points = enemy.score_value * self._combo_multiplier
                     self.score += points
-                    self._combo_multiplier = min(self._combo_multiplier + 1, 8)   # max 8x
-                    self._combo_timer = 180             # 3 seconden bij 60 FPS
+                    self._combo_multiplier = min(self._combo_multiplier + 1, COMBO_MAX)
+                    self._combo_timer = COMBO_DURATION
 
                     # zwevende score tekst op kill positie
                     self.score_texts.append({
                         'x': enemy.x,
                         'y': enemy.y,
                         'text': f"+{points}",
-                        'timer': 50,
-                        'color': (0, 220, 255)
+                        'timer': SCORE_TEXT_TIMER,
+                        'color': COLOR_CYAN
                     })
 
                     hit = True
@@ -120,10 +125,10 @@ class Game:
                 self.brain.health -= enemy.damage
 
                 self.damage_texts.append({
-                    'x': 140,                           # tonen even breedt bij health:..
-                    'y': 30,                            # tonen onder health: ..
+                    'x': DAMAGE_TEXT_X,                 # tonen even breedt bij health:..
+                    'y': DAMAGE_TEXT_Y,                 # tonen onder health: ..
                     'text': f"-{enemy.damage}",
-                    'timer': 60,
+                    'timer': DAMAGE_TEXT_TIMER,
                     'color': enemy.color
                 })
             else:
@@ -147,7 +152,7 @@ class Game:
             return
 
     def draw(self) -> None:                             # tekent alles op het scherm
-        self.screen.fill((20, 20, 30))                  # maakt achtergrond donker
+        self.screen.fill(BG_COLOR)                      # maakt achtergrond donker
         self.brain.draw(self.screen, self.font)
         self.brain.draw_health(self.screen, self.font)
 
@@ -164,9 +169,9 @@ class Game:
 
         # "Wave X" tekst tijdens pauze tussen waves
         if self.wave_manager.is_between_waves and self.wave_manager.wave_number < 1:
-            wave_text = self.font.render("Get Ready...", True, (0, 220, 255))
+            wave_text = self.font.render("Get Ready...", True, COLOR_CYAN)
         elif self.wave_manager.is_between_waves:
-            wave_text = self.font.render(f"Wave {self.wave_manager.wave_number + 1}", True, (0, 220, 255))
+            wave_text = self.font.render(f"Wave {self.wave_manager.wave_number + 1}", True, COLOR_CYAN)
         else:
             wave_text = None
 
@@ -184,7 +189,7 @@ class Game:
 
     def run(self) -> None:                              # main game loop: zolang running = True: steed opnieuw dit
         while self.running:
-            self.clock.tick(60)                         # 60 frames per second
+            self.clock.tick(FPS)                         # 60 frames per second
             self.active_screen.handle_events()
             self.active_screen.update()
             self.active_screen.draw()

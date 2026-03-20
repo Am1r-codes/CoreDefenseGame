@@ -2,19 +2,23 @@
 
 import pygame
 import math
+from src.settings import (
+    PROJECTILE_SPEED, PROJECTILE_RADIUS, PROJECTILE_COLOR, PROJECTILE_DAMAGE,
+    PLASMA_COLOR, PLASMA_CORE_COLOR, PLASMA_GLOW_ALPHA,
+)
 
 
 class ProjectileBase:
     """Basiskogel --> rechte lijn, standaard snelheid en schade."""
 
     def __init__(self, x: float, y: float, target_x: float, target_y: float,
-                 speed: float = 8) -> None:
+                 speed: float = PROJECTILE_SPEED) -> None:
         self.x = x
         self.y = y
         self.speed = speed
-        self.radius = 5
-        self.color = (200, 200, 200)              # standaard grijs
-        self.damage = 1
+        self.radius = PROJECTILE_RADIUS
+        self.color = PROJECTILE_COLOR                    # standaard grijs
+        self.damage = PROJECTILE_DAMAGE
 
         # richting berekenen bij spawn
         dx = target_x - x
@@ -54,19 +58,19 @@ class PlasmaBullet(ProjectileBase):
     """Plasma kogel --> cyaan glow, standaard wapen van de speler."""
 
     def __init__(self, x: float, y: float, target_x: float, target_y: float) -> None:
-        super().__init__(x, y, target_x, target_y, speed=8)
-        self.color = (0, 220, 255)                # cyaan, matcht speler
-        self.radius = 5
-        self.damage = 1
+        super().__init__(x, y, target_x, target_y, speed=PROJECTILE_SPEED)
+        self.color = PLASMA_COLOR                        # cyaan, matcht speler
+        self.radius = PROJECTILE_RADIUS
+        self.damage = PROJECTILE_DAMAGE
 
     def draw(self, screen: pygame.Surface) -> None:
         x, y = int(self.x), int(self.y)
 
         # glow effect
         glow_surface = pygame.Surface((self.radius * 4, self.radius * 4), pygame.SRCALPHA)
-        pygame.draw.circle(glow_surface, (0, 220, 255, 60), (self.radius * 2, self.radius * 2), self.radius + 4)
+        pygame.draw.circle(glow_surface, (*PLASMA_COLOR, PLASMA_GLOW_ALPHA), (self.radius * 2, self.radius * 2), self.radius + 4)
         screen.blit(glow_surface, (x - self.radius * 2, y - self.radius * 2))
 
         # kern
         pygame.draw.circle(screen, self.color, (x, y), self.radius)
-        pygame.draw.circle(screen, (200, 245, 255), (x, y), self.radius - 2)     # lichte kern
+        pygame.draw.circle(screen, PLASMA_CORE_COLOR, (x, y), self.radius - 2)     # lichte kern

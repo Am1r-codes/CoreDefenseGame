@@ -2,6 +2,11 @@
 
 import random
 from src.entities.enemy_base import EnemyBase, NoiseEnemy, BiasEnemy, HallucinationEnemy, OverfittingEnemy
+from src.settings import (
+    WAVE_SPAWN_DELAY, WAVE_BREAK_DURATION, WAVE_SPAWN_MARGIN,
+    WAVE_BASE_COUNT, WAVE_COUNT_SCALE,
+    WAVE_UNLOCK_NOISE, WAVE_UNLOCK_BIAS, WAVE_UNLOCK_HALLUCINATION, WAVE_UNLOCK_OVERFITTING,
+)
 
 
 class WaveManager:
@@ -13,9 +18,9 @@ class WaveManager:
         self._wave_number = 0
         self._spawn_queue: list[type] = []        # enemy-klassen die nog gespawned moeten worden
         self._spawn_timer = 0                     # frames tot volgende spawn
-        self._spawn_delay = 15                    # frames tussen spawns (staggered)
+        self._spawn_delay = WAVE_SPAWN_DELAY      # frames tussen spawns (staggered)
         self._break_timer = 0                     # pauze-teller tussen waves
-        self._break_duration = 150                # 2.5 seconden bij 60 FPS
+        self._break_duration = WAVE_BREAK_DURATION
 
     @property
     def wave_number(self) -> int:
@@ -30,28 +35,27 @@ class WaveManager:
     def _get_spawn_position(self) -> tuple[float, float]:
         """Geeft random positie buiten het scherm terug."""
         edge = random.choice(["top", "bottom", "left", "right"])
-        margin = 40                               # hoe ver buiten scherm
 
         if edge == "top":
-            return random.uniform(0, self._screen_width), -margin
+            return random.uniform(0, self._screen_width), -WAVE_SPAWN_MARGIN
         elif edge == "bottom":
-            return random.uniform(0, self._screen_width), self._screen_height + margin
+            return random.uniform(0, self._screen_width), self._screen_height + WAVE_SPAWN_MARGIN
         elif edge == "left":
-            return -margin, random.uniform(0, self._screen_height)
+            return -WAVE_SPAWN_MARGIN, random.uniform(0, self._screen_height)
         else:
-            return self._screen_width + margin, random.uniform(0, self._screen_height)
+            return self._screen_width + WAVE_SPAWN_MARGIN, random.uniform(0, self._screen_height)
 
     def _get_enemy_types(self) -> list[type]:
         """Bepaalt welke enemy types beschikbaar zijn voor huidige wave."""
         types = [EnemyBase]
 
-        if self._wave_number >= 3:
+        if self._wave_number >= WAVE_UNLOCK_NOISE:
             types.append(NoiseEnemy)
-        if self._wave_number >= 5:
+        if self._wave_number >= WAVE_UNLOCK_BIAS:
             types.append(BiasEnemy)
-        if self._wave_number >= 7:
+        if self._wave_number >= WAVE_UNLOCK_HALLUCINATION:
             types.append(HallucinationEnemy)
-        if self._wave_number >= 9:
+        if self._wave_number >= WAVE_UNLOCK_OVERFITTING:
             types.append(OverfittingEnemy)
 
         return types
@@ -59,7 +63,7 @@ class WaveManager:
     def _build_wave(self) -> list[type]:
         """Bouwt spawn-queue voor de huidige wave, steeds moeilijker."""
         available_types = self._get_enemy_types()
-        enemy_count = 3 + self._wave_number * 2   # wave 1 = 5, wave 5 = 13, wave 10 = 23
+        enemy_count = WAVE_BASE_COUNT + self._wave_number * WAVE_COUNT_SCALE
 
         queue = []
         for _ in range(enemy_count):

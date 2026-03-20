@@ -2,6 +2,7 @@
 
 import pygame
 from src.ui.menu import GameScreen
+from src.settings import BG_COLOR, COLOR_CYAN, COLOR_SUBTITLE, COLOR_WHITE, COLOR_GAME_OVER, FONT_SIZE_GAME_OVER
 
 
 class GameOverScreen(GameScreen):
@@ -9,7 +10,7 @@ class GameOverScreen(GameScreen):
 
     def __init__(self, game) -> None:
         super().__init__(game)
-        self._title_font = pygame.font.SysFont(None, 72)
+        self._title_font = pygame.font.SysFont(None, FONT_SIZE_GAME_OVER)
         self._final_score = 0
         self._final_wave = 0
 
@@ -36,28 +37,28 @@ class GameOverScreen(GameScreen):
         width = self.game.width
         height = self.game.height
 
-        screen.fill((20, 20, 30))
+        screen.fill(BG_COLOR)
 
         # SYSTEM FAILURE titel
-        title = self._title_font.render("SYSTEM FAILURE", True, (255, 60, 60))
+        title = self._title_font.render("SYSTEM FAILURE", True, COLOR_GAME_OVER)
         title_rect = title.get_rect(center=(width // 2, height // 3))
         screen.blit(title, title_rect)
 
         # eindscore
-        score_text = self.game.font.render(f"Final Score: {self._final_score}", True, (255, 255, 255))
+        score_text = self.game.font.render(f"Final Score: {self._final_score}", True, COLOR_WHITE)
         score_rect = score_text.get_rect(center=(width // 2, height // 2))
         screen.blit(score_text, score_rect)
 
         # wave bereikt
-        wave_text = self.game.font.render(f"Wave Reached: {self._final_wave}", True, (255, 255, 255))
+        wave_text = self.game.font.render(f"Wave Reached: {self._final_wave}", True, COLOR_WHITE)
         wave_rect = wave_text.get_rect(center=(width // 2, height // 2 + 45))
         screen.blit(wave_text, wave_rect)
 
         # instructies
-        restart_text = self.game.font.render("Press R to restart", True, (0, 220, 255))
+        restart_text = self.game.font.render("Press R to restart", True, COLOR_CYAN)
         restart_rect = restart_text.get_rect(center=(width // 2, height // 2 + 120))
         screen.blit(restart_text, restart_rect)
 
-        quit_text = self.game.font.render("Press ESC to quit", True, (180, 180, 200))
+        quit_text = self.game.font.render("Press ESC to quit", True, COLOR_SUBTITLE)
         quit_rect = quit_text.get_rect(center=(width // 2, height // 2 + 160))
         screen.blit(quit_text, quit_rect)
