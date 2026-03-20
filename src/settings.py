@@ -1,4 +1,9 @@
-"""Shared game settings and constants."""
+"""Centralized game settings and constants.
+
+All magic numbers, colors, speeds, and tuning values used across the project
+are defined here. Import individual constants where needed to keep game
+behavior easy to adjust from a single location.
+"""
 
 # ──── Scherm ────
 SCREEN_WIDTH = 1000

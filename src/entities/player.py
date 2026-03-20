@@ -1,4 +1,4 @@
-"""Player entity placeholder."""
+"""Player entity with WASD movement, mouse aiming, and shooting."""
 
 import pygame
 import math
@@ -10,9 +10,21 @@ from src.settings import (
 
 
 class Player:
-    """Speler die rond het brein beweegt en op enemies schiet."""
+    """Player-controlled entity that moves around the brain and shoots enemies.
+
+    Uses WASD for movement with diagonal normalization, rotates toward
+    the mouse cursor, and fires projectiles with a cooldown system.
+    Encapsulates shooting logic internally via try_shoot().
+    """
+    # Speler die rond het brein beweegt en op enemies schiet.
 
     def __init__(self, x: float, y: float) -> None:
+        """Create a player at the given position.
+
+        Args:
+            x: Starting x position in pixels.
+            y: Starting y position in pixels.
+        """
         self.x = x
         self.y = y
         self.speed = PLAYER_SPEED
@@ -25,7 +37,22 @@ class Player:
     def update(self, keys: pygame.key.ScancodeWrapper, mouse_x: int, mouse_y: int,
                screen_width: int, screen_height: int,
                core_x: float, core_y: float, core_radius: float) -> None:
-        """Beweeg speler met WASD, draai richting muis, blijf binnen scherm en buiten brein."""
+        """Update player position, aim angle, and shoot cooldown.
+
+        Handles WASD movement with diagonal normalization, clamps position
+        to screen bounds, pushes player out of the brain core if overlapping,
+        and updates the aim angle toward the mouse cursor.
+
+        Args:
+            keys: Current keyboard state from pygame.key.get_pressed().
+            mouse_x: Current mouse x position in pixels.
+            mouse_y: Current mouse y position in pixels.
+            screen_width: Width of the game window in pixels.
+            screen_height: Height of the game window in pixels.
+            core_x: X position of the brain center.
+            core_y: Y position of the brain center.
+            core_radius: Radius of the brain hitbox.
+        """
         dx = 0.0
         dy = 0.0
 
@@ -68,14 +95,29 @@ class Player:
             self._shoot_cooldown -= 1
 
     def try_shoot(self, mouse_x: int, mouse_y: int) -> PlasmaBullet | None:
-        """Probeer te schieten, geeft kogel terug of None als cooldown actief is."""
+        """Attempt to fire a projectile toward the mouse position.
+
+        Only fires if the internal cooldown has elapsed. Resets the
+        cooldown timer on a successful shot.
+
+        Args:
+            mouse_x: Target x position in pixels (mouse cursor).
+            mouse_y: Target y position in pixels (mouse cursor).
+
+        Returns:
+            A new PlasmaBullet if the cooldown allows, otherwise None.
+        """
         if self._shoot_cooldown <= 0:
             self._shoot_cooldown = self._shoot_delay
             return PlasmaBullet(self.x, self.y, mouse_x, mouse_y)
         return None
 
     def draw(self, screen: pygame.Surface) -> None:
-        """Teken speler als cyaan cirkel met richtingindicator."""
+        """Draw the player with a glow effect, inner core, and aim line.
+
+        Args:
+            screen: Pygame surface to draw on.
+        """
         x, y = int(self.x), int(self.y)
 
         # glow effect

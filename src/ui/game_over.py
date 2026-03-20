@@ -1,4 +1,4 @@
-"""Game over scherm."""
+"""Game over screen shown when the brain core is destroyed."""
 
 import pygame
 from src.ui.menu import GameScreen
@@ -6,20 +6,38 @@ from src.settings import BG_COLOR, COLOR_CYAN, COLOR_SUBTITLE, COLOR_WHITE, COLO
 
 
 class GameOverScreen(GameScreen):
-    """Scherm dat verschijnt wanneer het brein is vernietigd."""
+    """Screen displayed when the brain's health reaches zero.
+
+    Shows the final score, wave reached, and options to restart
+    or quit. Pressing R resets and restarts, Esc exits the game.
+    """
 
     def __init__(self, game) -> None:
+        """Create the game over screen with a large title font.
+
+        Args:
+            game: Reference to the parent Game object.
+        """
         super().__init__(game)
         self._title_font = pygame.font.SysFont(None, FONT_SIZE_GAME_OVER)
         self._final_score = 0
         self._final_wave = 0
 
     def set_results(self, score: int, wave: int) -> None:
-        """Sla eindresultaten op voor weergave."""
+        """Store the final results to display on the game over screen.
+
+        Args:
+            score: The player's final score.
+            wave: The wave number reached before game over.
+        """
         self._final_score = score
         self._final_wave = wave
 
     def handle_events(self) -> None:
+        """Process game over input events.
+
+        Handles window close, R key to restart, and Esc to quit.
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.game.running = False
@@ -30,9 +48,11 @@ class GameOverScreen(GameScreen):
                     self.game.running = False
 
     def update(self) -> None:
+        """No update logic needed for the static game over screen."""
         pass
 
     def draw(self) -> None:
+        """Render the game over screen with results and instructions."""
         screen = self.game.screen
         width = self.game.width
         height = self.game.height
