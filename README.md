@@ -83,7 +83,7 @@ CoreDefenseGame/
 │   ├── managers/
 │   │   ├── __init__.py
 │   │   ├── wave_manager.py      # Wave spawning and progression system
-│   │   ├── visual_effects_manager.py  # Muzzle flashes, impacts, wave pulses
+│   │   ├── visual_effects_manager.py  # Muzzle flashes, explosions, core-hit glows
 │   │   └── sound_manager.py     # Runtime synthesized gameplay SFX
 │   └── ui/
 │       ├── __init__.py
