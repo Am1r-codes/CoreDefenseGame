@@ -5,7 +5,7 @@ are defined here. Import individual constants where needed to keep game
 behavior easy to adjust from a single location.
 """
 
-# ──── Scherm ────
+# ──── Screen ────
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 700
 FPS = 60
@@ -16,7 +16,7 @@ FONT_SIZE_TITLE = 80
 FONT_SIZE_SUBTITLE = 40
 FONT_SIZE_GAME_OVER = 72
 
-# ──── Kleuren - algemeen ────
+# ──── Colors ────
 BG_COLOR = (20, 20, 30)
 COLOR_WHITE = (255, 255, 255)
 COLOR_CYAN = (0, 220, 255)
@@ -24,13 +24,13 @@ COLOR_SUBTITLE = (180, 180, 200)
 COLOR_COMBO = (255, 220, 50)
 COLOR_GAME_OVER = (255, 60, 60)
 
-# ──── Brein ────
+# ──── Brain ────
 BRAIN_HEALTH = 20
 BRAIN_RADIUS = 60
 BRAIN_LINE_COLOR = (230, 210, 255)
 BRAIN_BASE_RGB = (200, 120, 150)
 
-# ──── Speler ────
+# ──── Player ────
 PLAYER_SPEED = 4
 PLAYER_RADIUS = 14
 PLAYER_COLOR = COLOR_CYAN
@@ -55,7 +55,7 @@ ENEMY_BASE_COLOR = (80, 150, 255)
 ENEMY_BASE_DAMAGE = 1
 ENEMY_BASE_SCORE = 10
 
-NOISE_SPEED = 4.0
+NOISE_SPEED = 3.0
 NOISE_COLOR = (255, 150, 50)
 NOISE_DAMAGE = 1
 NOISE_SCORE = 25

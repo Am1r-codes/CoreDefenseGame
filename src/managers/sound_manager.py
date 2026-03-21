@@ -78,6 +78,11 @@ class SoundManager:
         First checks for the provided exact filename, then searches all '.mp3' files and
         returns the first whose stem contains any of the given hint strings (case-insensitive),
         or None if no suitable file is found.
+        
+        Args:
+            exact_filename: The exact filename to look for.
+            hints: A tuple of hint strings to search for in filenames.
+
         """
         base_dir = self._find_sound_dir()
         if not base_dir.exists():
@@ -175,6 +180,12 @@ class SoundManager:
         Start playback of a looping music track if it is not already playing.
         Loads the given file path into the music mixer channel, applies the given volume,
         and plays it on an infinite loop with an optional fade-in time in milliseconds.
+        
+        Args:
+            track_name: A unique name for this track (e.g. "title", "game").
+            track_path: The Path to the music file.
+            volume: Volume level as a float between 0.0 and 1.0.
+            fade_in_ms: Optional fade-in duration in milliseconds; 0 for no fade.
         """
         if self._current_music_track == track_name and pygame.mixer.music.get_busy():
             return
@@ -193,6 +204,11 @@ class SoundManager:
         Generates PCM samples at the current mixer sample rate using a sine wave at the
         given frequency and duration, applies a simple attack/release envelope to reduce clicks,
         and returns a pygame Sound with the requested volume.
+        
+        Args:
+            frequency: The frequency of the sine wave in Hz.
+            duration_s: The duration of the tone in seconds.
+            volume: The volume factor (0.0-1.0) for the tone, default 0.35.
         """
         mixer_info = pygame.mixer.get_init()
         if mixer_info is None:
@@ -286,6 +302,10 @@ class SoundManager:
         """
         Set the playback volume for all sound variants registered under a given name.
         If the name is not present in the sound bank, this method has no effect.
+
+        Args:
+            name: The event name under which sounds are registered (e.g. "shoot").
+            volume: The volume level as a float between 0.0 and 1.0.
         """
         for sound in self._sounds.get(name, []):
             sound.set_volume(volume)
@@ -296,6 +316,9 @@ class SoundManager:
         Randomly selects one of the available variants for the given name, checks a
         per-event cooldown based on the last playback timestamp, and triggers the sound
         if the cooldown has elapsed.
+
+        Args:
+            name: The name of the sound event (e.g. "shoot", "enemy_destroyed").
         """
         if not self._enabled:
             return
@@ -318,6 +341,9 @@ class SoundManager:
         Start or switch to looping title-screen music with an optional fade-in.
         If a title track is available and sound is enabled, plays it on the music channel
         with either the default fade-in duration or the provided override.
+
+        Args:
+            fade_in_ms: Optional fade‑in duration in milliseconds; uses default if None.
         """
         if not self._enabled or self._title_music_path is None:
             return
@@ -329,6 +355,9 @@ class SoundManager:
         Start or switch to looping in-game music with an optional fade-in.
         If a game track is available and sound is enabled, plays it on the music channel
         with either the default fade-in duration or the provided override.
+
+        Args:
+            fade_in_ms: Optional fade‑in duration in milliseconds; uses default if None.
         """
         if not self._enabled or self._game_music_path is None:
             return
@@ -340,6 +369,9 @@ class SoundManager:
         Start or switch to looping low-health music with an optional fade-in.
         If a low-health track is available and sound is enabled, plays it on the music channel
         with either the default fade-in duration or the provided override.
+
+        Args:
+            fade_in_ms: Optional fade‑in duration in milliseconds; uses default if None.
         """
         if not self._enabled or self._low_health_music_path is None:
             return
@@ -351,6 +383,9 @@ class SoundManager:
         Stop any currently playing music with an optional fade-out.
         Uses the default fade-out time when no value is provided, then clears the
         internal record of the currently active music track.
+
+        Args:
+            fadeout_ms: Optional fade‑out duration in milliseconds; uses default if None.
         """
         if not self._enabled:
             return

@@ -19,7 +19,6 @@ class ProjectileBase:
     at a constant speed each frame. Subclasses override draw() for
     custom visuals and __init__() for different stats.
     """
-    # Basiskogel --> rechte lijn, standaard snelheid en schade.
 
     def __init__(self, x: float, y: float, target_x: float, target_y: float,
                  speed: float = PROJECTILE_SPEED) -> None:
@@ -36,10 +35,10 @@ class ProjectileBase:
         self.y = y
         self.speed = speed
         self.radius = PROJECTILE_RADIUS
-        self.color = PROJECTILE_COLOR                    # standaard grijs
+        self.color = PROJECTILE_COLOR                    
         self.damage = PROJECTILE_DAMAGE
 
-        # richting berekenen bij spawn
+        # Compute normalized direction vector at spawn
         dx = target_x - x
         dy = target_y - y
         distance = math.sqrt(dx**2 + dy**2)
@@ -51,7 +50,7 @@ class ProjectileBase:
             self.dx = 0.0
             self.dy = 0.0
 
-    def update(self) -> None:                                                   # beweeg kogel
+    def update(self) -> None:                                                  
         """Move the projectile along its direction vector.
 
         Subclasses can override this for custom movement patterns
@@ -60,7 +59,7 @@ class ProjectileBase:
         self.x += self.dx * self.speed
         self.y += self.dy * self.speed
 
-    def is_off_screen(self, screen_width: int, screen_height: int) -> bool:     # check buiten scherm
+    def is_off_screen(self, screen_width: int, screen_height: int) -> bool:     
         """Check whether the projectile has left the screen bounds.
 
         Args:
@@ -91,7 +90,7 @@ class ProjectileBase:
         distance = math.sqrt(dx**2 + dy**2)
         return distance < (self.radius + enemy_radius)
 
-    def draw(self, screen: pygame.Surface) -> None:                             # draw kogel
+    def draw(self, screen: pygame.Surface) -> None:                             
         """Draw the projectile as a simple circle.
 
         Subclasses override this for custom visuals like glow effects.
@@ -108,7 +107,6 @@ class PlasmaBullet(ProjectileBase):
     The default weapon type fired by the player. Overrides draw()
     to render a glowing bullet with a bright inner core.
     """
-    # Plasma kogel --> cyaan glow, standaard wapen van de speler.
 
     def __init__(self, x: float, y: float, target_x: float, target_y: float) -> None:
         """Create a plasma bullet aimed at a target.
@@ -120,7 +118,7 @@ class PlasmaBullet(ProjectileBase):
             target_y: Target y position to aim toward.
         """
         super().__init__(x, y, target_x, target_y)
-        self.color = PLASMA_COLOR                        # cyaan, matcht speler
+        self.color = PLASMA_COLOR                       
 
     def draw(self, screen: pygame.Surface) -> None:
         """Draw the plasma bullet with a cyan glow and bright core.
@@ -130,11 +128,11 @@ class PlasmaBullet(ProjectileBase):
         """
         x, y = int(self.x), int(self.y)
 
-        # glow effect
+        # Glow effect around the bullet
         glow_surface = pygame.Surface((self.radius * 4, self.radius * 4), pygame.SRCALPHA)
         pygame.draw.circle(glow_surface, (*PLASMA_COLOR, PLASMA_GLOW_ALPHA), (self.radius * 2, self.radius * 2), self.radius + 4)
         screen.blit(glow_surface, (x - self.radius * 2, y - self.radius * 2))
 
-        # kern
+        # Outer body
         pygame.draw.circle(screen, self.color, (x, y), self.radius)
-        pygame.draw.circle(screen, PLASMA_CORE_COLOR, (x, y), self.radius - 2)     # lichte kern
+        pygame.draw.circle(screen, PLASMA_CORE_COLOR, (x, y), self.radius - 2)     # Lighter core

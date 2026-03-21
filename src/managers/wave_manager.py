@@ -21,7 +21,6 @@ class WaveManager:
     tougher types at specific wave thresholds. A short break is given
     between waves.
     """
-    # Beheert enemy waves, spawning en progressie.
 
     def __init__(self, screen_width: int, screen_height: int) -> None:
         """Create a wave manager for the given screen dimensions.
@@ -33,10 +32,10 @@ class WaveManager:
         self._screen_width = screen_width
         self._screen_height = screen_height
         self._wave_number = 0
-        self._spawn_queue: list[type] = []        # enemy-klassen die nog gespawned moeten worden
-        self._spawn_timer = 0                     # frames tot volgende spawn
-        self._spawn_delay = WAVE_SPAWN_DELAY      # frames tussen spawns (staggered)
-        self._break_timer = 0                     # pauze-teller tussen waves
+        self._spawn_queue: list[type] = []        
+        self._spawn_timer = 0                     
+        self._spawn_delay = WAVE_SPAWN_DELAY     
+        self._break_timer = 0                     
         self._break_duration = WAVE_BREAK_DURATION
 
     @property
@@ -126,24 +125,21 @@ class WaveManager:
             enemies: The live enemy list to append newly spawned enemies to.
         """
 
-        # pauze tussen waves aftellen
+        # Count down the break between waves
         if self._break_timer > 0:
             self._break_timer -= 1
             if self._break_timer <= 0:
                 self._start_next_wave()
             return
 
-        # nog geen wave gestart -> begin eerste wave na korte pauze
         if self._wave_number == 0:
             self._break_timer = self._break_duration
             return
 
-        # als queue leeg en alle enemies dood -> pauze voor volgende wave
         if len(self._spawn_queue) == 0 and len(enemies) == 0:
             self._break_timer = self._break_duration
             return
 
-        # spawn volgende enemy uit queue met vertraging
         if len(self._spawn_queue) > 0:
             self._spawn_timer -= 1
             if self._spawn_timer <= 0:

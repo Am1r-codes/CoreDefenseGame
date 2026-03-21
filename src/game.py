@@ -37,19 +37,18 @@ class Game:
         self.width = SCREEN_WIDTH
         self.height = SCREEN_HEIGHT
         self.screen = pygame.display.set_mode((self.width, self.height))
-        pygame.display.set_caption("Core Collapse")     # titel venster
-        self.clock = pygame.time.Clock()                # nodig voor FPS
-        self.running = True                             # game loop moet doorgaan
+        pygame.display.set_caption("Core Collapse")   
+        self.clock = pygame.time.Clock()                
+        self.running = True                             
 
         self.font = pygame.font.SysFont(None, FONT_SIZE)
         self.hud = HUD(self.width, self.font)
         self.vfx = VisualEffectsManager(self.font)
         self.sound = SoundManager()
 
-        # scherm-states: menu, playing (= self), game_over
         self.menu_screen = MenuScreen(self)
         self.game_over_screen = GameOverScreen(self)
-        self.active_screen = self.menu_screen           # start op menu
+        self.active_screen = self.menu_screen           # start on menu
         self._resume_title_music_at_ms: int | None = None
         self.play_title_music()
 
@@ -70,7 +69,7 @@ class Game:
         self._resume_title_music_at_ms = None
         self.stop_title_music()
         self._reset_gameplay()
-        self.active_screen = self                       # Game zelf is de playing screen
+        self.active_screen = self                       # Game itself is the playing screen
         self.sound.play_game_music(fade_in_ms=600)
 
     def update_game_over_music_transition(self) -> None:
@@ -95,15 +94,15 @@ class Game:
         self.projectiles: list[ProjectileBase] = []
 
         self.score = 0
-        self._combo_multiplier = 1                      # combo vermenigvuldiger
-        self._combo_timer = 0                           # frames sinds laatste kill
+        self._combo_multiplier = 1                      
+        self._combo_timer = 0                           
         self._last_wave_number = 0
         self._failing_music_stopped = False
 
-        self.damage_texts = []                          # lijst waar je alle tijdelijke damage teksten opslaat
-        self.score_texts = []                           # zwevende "+X pts" bij kill positie
+        self.damage_texts = []                          
+        self.score_texts = []                           
 
-    def handle_events(self) -> None:                    # kijkt naar gebeurtenissen van pygame
+    def handle_events(self) -> None:                    
         """Process input events during the playing state.
 
         Handles window close and continuous shooting while the
@@ -111,9 +110,8 @@ class Game:
         """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.running = False                    # spel stopt als speler op kruisje drukt
+                self.running = False                    
 
-        # continu schieten bij ingedrukte muisknop
         mouse_buttons = pygame.mouse.get_pressed()
         if mouse_buttons[0]:
             mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -123,7 +121,7 @@ class Game:
                 self.play_sound("shoot")
                 self.vfx.spawn_muzzle_flash(self.player.x, self.player.y, COLOR_CYAN)
 
-    def update(self) -> None:                           # enemies bewegen + botsing checken + kogels bewegen + score updaten
+    def update(self) -> None:                           
         """Update all gameplay systems for one frame.
 
         Advances wave spawning, moves the player and projectiles,
@@ -142,34 +140,29 @@ class Game:
                            self.width, self.height,
                            self.brain.x, self.brain.y, self.brain.radius)
 
-        # kogels updaten en off-screen verwijderen
+        
         for projectile in self.projectiles:
             projectile.update()
         self.projectiles = [p for p in self.projectiles if not p.is_off_screen(self.width, self.height)]
 
-        # combo timer bijhouden
+        
         if self._combo_timer > 0:
             self._combo_timer -= 1
         else:
-            self._combo_multiplier = 1                  # reset na 3 sec zonder kill
+            self._combo_multiplier = 1                  # Resets after 3 seconds
 
-        # kogel-enemy botsing
         remaining_projectiles = []
         for projectile in self.projectiles:
             hit = False
             for enemy in self.enemies:
                 if projectile.collides_with_enemy(enemy.x, enemy.y, enemy.radius):
-                    self.enemies.remove(enemy)          # enemy verdwijnt bij hit
+                    self.enemies.remove(enemy)          
                     self.play_sound("enemy_destroyed")
                     self.vfx.spawn_enemy_destroyed(enemy.x, enemy.y, enemy.color)
-
-                    # score toekennen met combo
                     points = enemy.score_value * self._combo_multiplier
                     self.score += points
                     self._combo_multiplier = min(self._combo_multiplier + 1, COMBO_MAX)
                     self._combo_timer = COMBO_DURATION
-
-                    # zwevende score tekst op kill positie
                     self.score_texts.append({
                         'x': enemy.x,
                         'y': enemy.y,
@@ -184,7 +177,6 @@ class Game:
                 remaining_projectiles.append(projectile)
         self.projectiles = remaining_projectiles
 
-        # enemies bewegen en brein-botsing
         remaining_enemies = []
         for enemy in self.enemies:
             enemy.update(self.brain.x, self.brain.y)
@@ -194,8 +186,8 @@ class Game:
                 self.vfx.spawn_core_hit(self.brain.x, self.brain.y, enemy.color)
 
                 self.damage_texts.append({
-                    'x': DAMAGE_TEXT_X,                 # tonen even breedt bij health:..
-                    'y': DAMAGE_TEXT_Y,                 # tonen onder health: ..
+                    'x': DAMAGE_TEXT_X,                 # X position aligned with health text
+                    'y': DAMAGE_TEXT_Y,                 # Y position aligned below health 
                     'text': f"-{enemy.damage}",
                     'timer': DAMAGE_TEXT_TIMER,
                     'color': enemy.color
@@ -223,7 +215,6 @@ class Game:
 
         self.vfx.update()
 
-        # game over check
         if self.brain.health <= 0:
             self.play_sound("game_over")
             self.sound.stop_music(fadeout_ms=300)
@@ -232,13 +223,13 @@ class Game:
             self.active_screen = self.game_over_screen
             return
 
-    def draw(self) -> None:                             # tekent alles op het scherm
+    def draw(self) -> None:                            
         """Render all gameplay elements to the screen.
 
         Draws the brain, enemies, projectiles, player, HUD elements,
         wave announcements, and floating damage/score texts.
         """
-        self.screen.fill(BG_COLOR)                      # maakt achtergrond donker
+        self.screen.fill(BG_COLOR)                      
         self.brain.draw(self.screen, self.font)
         self.brain.draw_health(self.screen, self.font)
 
@@ -249,11 +240,10 @@ class Game:
             projectile.draw(self.screen)
 
         self.player.draw(self.screen)
-        self.hud.draw_enemy_legend(self.screen)         # legenda
+        self.hud.draw_enemy_legend(self.screen)         
         self.hud.draw_wave_counter(self.screen, self.wave_manager.wave_number)
         self.hud.draw_score(self.screen, self.score, self._combo_multiplier)
 
-        # "Wave X" tekst tijdens pauze tussen waves
         if self.wave_manager.is_between_waves and self.wave_manager.wave_number < 1:
             wave_text = self.font.render("Get Ready...", True, COLOR_CYAN)
         elif self.wave_manager.is_between_waves:
@@ -275,17 +265,17 @@ class Game:
 
         self.vfx.draw(self.screen)
 
-    def run(self) -> None:                              # main game loop: zolang running = True: steed opnieuw dit
+    def run(self) -> None:                              
         """Run the main game loop until the player quits.
 
         Ticks at FPS frames per second. Each frame dispatches to
         the active screen's handle_events, update, and draw methods.
         """
         while self.running:
-            self.clock.tick(FPS)                         # 60 frames per second
+            self.clock.tick(FPS)                         
             self.active_screen.handle_events()
             self.active_screen.update()
             self.active_screen.draw()
-            pygame.display.flip()                       # laat nieuw frame zien
+            pygame.display.flip()                       # Show new frame
 
         pygame.quit()

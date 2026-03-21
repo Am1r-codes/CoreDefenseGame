@@ -24,7 +24,6 @@ class EnemyBase:
     Moves in a straight line toward the brain at a constant speed.
     Subclasses override __init__, update, and draw for unique behavior.
     """
-    # Corrupted data --> standaard snelheid, weinig damage, veel tegelijk
 
     def __init__(self, x: float, y: float, speed: float = ENEMY_BASE_SPEED) -> None:
         """Create an enemy at the given position.
@@ -38,11 +37,11 @@ class EnemyBase:
         self.y = y
         self.speed = speed
         self.radius = ENEMY_BASE_RADIUS
-        self.color = ENEMY_BASE_COLOR                    # blauw
+        self.color = ENEMY_BASE_COLOR                   
         self.damage = ENEMY_BASE_DAMAGE
-        self.score_value = ENEMY_BASE_SCORE              # punten bij kill
+        self.score_value = ENEMY_BASE_SCORE             
 
-    def update(self, target_x: float, target_y: float) -> None:         # beweegt naar brein
+    def update(self, target_x: float, target_y: float) -> None:         
         """Move the enemy toward the target position.
 
         Calculates a normalized direction vector and moves at
@@ -65,7 +64,7 @@ class EnemyBase:
         self.x += dx * self.speed
         self.y += dy * self.speed
 
-    def draw(self, screen: pygame.Surface) -> None:                     # draw enemy
+    def draw(self, screen: pygame.Surface) -> None:                     
         """Draw the enemy as a colored circle.
 
         Subclasses override this for custom visuals like glow
@@ -76,7 +75,7 @@ class EnemyBase:
         """
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
 
-    def collides_with_brain(self, core_x: float, core_y: float, core_radius: float) -> bool:    # checkt of enemy het brein raakt
+    def collides_with_brain(self, core_x: float, core_y: float, core_radius: float) -> bool:    
         """Check whether this enemy overlaps with the brain core.
 
         Uses distance between centers vs sum of radii.
@@ -101,7 +100,6 @@ class NoiseEnemy(EnemyBase):
     Very fast and small, making it hard to hit. Renders with
     a layered glow effect around the core circle.
     """
-    # Noise enemy -> snel, weinig damage, moeilijk te raken
 
     def __init__(self, x: float, y: float) -> None:
         """Create a Noise enemy at the given position.
@@ -111,9 +109,9 @@ class NoiseEnemy(EnemyBase):
             y: Starting y position in pixels.
         """
         super().__init__(x, y, speed=NOISE_SPEED)
-        self.color = NOISE_COLOR                          # oranje
+        self.color = NOISE_COLOR                         
         self.damage = NOISE_DAMAGE
-        self.score_value = NOISE_SCORE                    # snel, moeilijk te raken
+        self.score_value = NOISE_SCORE                    
 
     def draw(self, screen: pygame.Surface) -> None:
         """Draw the Noise enemy with a layered glow effect.
@@ -123,7 +121,7 @@ class NoiseEnemy(EnemyBase):
         """
         x, y = int(self.x), int(self.y)
 
-        for r, alpha in [(self.radius + 10, 40), (self.radius + 6, 70)]:            # glow effect
+        for r, alpha in [(self.radius + 10, 40), (self.radius + 6, 70)]:            
             glow_surface = pygame.Surface((r*2, r*2), pygame.SRCALPHA)
             pygame.draw.circle(glow_surface, (*NOISE_COLOR, alpha), (r, r), r)
             screen.blit(glow_surface, (x - r, y - r))
@@ -136,7 +134,6 @@ class BiasEnemy(EnemyBase):
     Large radius and high damage, rendered with a dark border ring
     around the main body.
     """
-    # Traag, veel damage, veel HP
 
     def __init__(self, x: float, y: float) -> None:
         """Create a Bias enemy at the given position.
@@ -147,9 +144,9 @@ class BiasEnemy(EnemyBase):
         """
         super().__init__(x, y, speed=BIAS_SPEED)
         self.radius = BIAS_RADIUS
-        self.color = BIAS_COLOR                           # groen
+        self.color = BIAS_COLOR                           
         self.damage = BIAS_DAMAGE
-        self.score_value = BIAS_SCORE                     # tanky
+        self.score_value = BIAS_SCORE                     
 
     def draw(self, screen: pygame.Surface) -> None:
         """Draw the Bias enemy with a dark border ring.
@@ -158,8 +155,8 @@ class BiasEnemy(EnemyBase):
             screen: Pygame surface to draw on.
         """
         x, y = int(self.x), int(self.y)
-        pygame.draw.circle(screen, BIAS_BORDER_COLOR, (x, y), self.radius + 3)     # buitenrand (donker)
-        pygame.draw.circle(screen, self.color, (x, y), self.radius)                # binnenkant
+        pygame.draw.circle(screen, BIAS_BORDER_COLOR, (x, y), self.radius + 3)  # Darker outer ring
+        pygame.draw.circle(screen, self.color, (x, y), self.radius)                
 
 class HallucinationEnemy(EnemyBase):
     """Erratic enemy representing AI Hallucination.
@@ -167,7 +164,6 @@ class HallucinationEnemy(EnemyBase):
     Moves toward the brain but sways randomly each frame,
     creating an unpredictable zigzag path.
     """
-    # beweegt random, slingert
 
     def __init__(self, x: float, y: float) -> None:
         """Create a Hallucination enemy at the given position.
@@ -177,12 +173,12 @@ class HallucinationEnemy(EnemyBase):
             y: Starting y position in pixels.
         """
         super().__init__(x, y, speed=HALLUCINATION_SPEED)
-        self.color = HALLUCINATION_COLOR                  # geel
+        self.color = HALLUCINATION_COLOR                  
         self.damage = HALLUCINATION_DAMAGE
         self.radius = HALLUCINATION_RADIUS
-        self.score_value = HALLUCINATION_SCORE            # slingert, onvoorspelbaar
+        self.score_value = HALLUCINATION_SCORE            
 
-    def update(self, target_x: float, target_y: float) -> None:     # moet random naar brain gaan
+    def update(self, target_x: float, target_y: float) -> None:    
         """Move toward the target with random directional sway.
 
         Overrides EnemyBase.update to add random noise to the
@@ -201,10 +197,10 @@ class HallucinationEnemy(EnemyBase):
             dx /= distance
             dy /= distance
 
-        dx += random.uniform(-HALLUCINATION_SWAY, HALLUCINATION_SWAY)   # richting naar brain, met chaos
+        dx += random.uniform(-HALLUCINATION_SWAY, HALLUCINATION_SWAY)   # Random sway added to direction
         dy += random.uniform(-HALLUCINATION_SWAY, HALLUCINATION_SWAY)
 
-        self.x += dx * self.speed                       # beweging
+        self.x += dx * self.speed                       
         self.y += dy * self.speed
 
 class OverfittingEnemy(EnemyBase):
@@ -213,7 +209,6 @@ class OverfittingEnemy(EnemyBase):
     The largest and most dangerous enemy type. Rendered with a
     dark purple outer ring around a red core.
     """
-    # langzaam, groot en gevaarlijk
 
     def __init__(self, x: float, y: float) -> None:
         """Create an Overfitting enemy at the given position.
@@ -223,10 +218,10 @@ class OverfittingEnemy(EnemyBase):
             y: Starting y position in pixels.
         """
         super().__init__(x, y, speed=OVERFITTING_SPEED)
-        self.color = OVERFITTING_COLOR                    # rood
+        self.color = OVERFITTING_COLOR                 
         self.damage = OVERFITTING_DAMAGE
         self.radius = OVERFITTING_RADIUS
-        self.score_value = OVERFITTING_SCORE              # groot en gevaarlijk
+        self.score_value = OVERFITTING_SCORE             
 
     def draw(self, screen: pygame.Surface) -> None:
         """Draw the Overfitting enemy with a dark purple border.
@@ -235,5 +230,5 @@ class OverfittingEnemy(EnemyBase):
             screen: Pygame surface to draw on.
         """
         x, y = int(self.x), int(self.y)
-        pygame.draw.circle(screen, OVERFITTING_BORDER_COLOR, (x, y), self.radius + 4)   # donkere buitenkant
-        pygame.draw.circle(screen, self.color, (x, y), self.radius)                     # binnenkant
+        pygame.draw.circle(screen, OVERFITTING_BORDER_COLOR, (x, y), self.radius + 4)   # Darker outer ring
+        pygame.draw.circle(screen, self.color, (x, y), self.radius)                     

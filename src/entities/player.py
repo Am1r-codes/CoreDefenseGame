@@ -16,7 +16,6 @@ class Player:
     the mouse cursor, and fires projectiles with a cooldown system.
     Encapsulates shooting logic internally via try_shoot().
     """
-    # Speler die rond het brein beweegt en op enemies schiet.
 
     def __init__(self, x: float, y: float) -> None:
         """Create a player at the given position.
@@ -29,10 +28,10 @@ class Player:
         self.y = y
         self.speed = PLAYER_SPEED
         self.radius = PLAYER_RADIUS
-        self.color = PLAYER_COLOR                        # cyaan
-        self._angle = 0.0                                # interne hoek richting muis
-        self._shoot_cooldown = 0                         # interne timer tussen schoten
-        self._shoot_delay = PLAYER_SHOOT_DELAY           # frames tussen elk schot
+        self.color = PLAYER_COLOR                        
+        self._angle = 0.0                                
+        self._shoot_cooldown = 0                         
+        self._shoot_delay = PLAYER_SHOOT_DELAY           
 
     def update(self, keys: pygame.key.ScancodeWrapper, mouse_x: int, mouse_y: int,
                screen_width: int, screen_height: int,
@@ -65,7 +64,6 @@ class Player:
         if keys[pygame.K_d]:
             dx += 1
 
-        # diagonale normalisatie
         if dx != 0 and dy != 0:
             length = math.sqrt(dx**2 + dy**2)
             dx /= length
@@ -74,11 +72,9 @@ class Player:
         self.x += dx * self.speed
         self.y += dy * self.speed
 
-        # binnen scherm houden
         self.x = max(self.radius, min(screen_width - self.radius, self.x))
         self.y = max(self.radius, min(screen_height - self.radius, self.y))
 
-        # niet overlappen met brein
         dist_to_core = math.sqrt((self.x - core_x)**2 + (self.y - core_y)**2)
         min_dist = self.radius + core_radius
         if dist_to_core < min_dist and dist_to_core > 0:
@@ -87,10 +83,9 @@ class Player:
             self.x = core_x + push_dx * min_dist
             self.y = core_y + push_dy * min_dist
 
-        # hoek naar muis berekenen
         self._angle = math.atan2(mouse_y - self.y, mouse_x - self.x)
 
-        # cooldown aftellen
+    
         if self._shoot_cooldown > 0:
             self._shoot_cooldown -= 1
 
@@ -120,16 +115,16 @@ class Player:
         """
         x, y = int(self.x), int(self.y)
 
-        # glow effect
+        # Glow effect
         glow_surface = pygame.Surface((self.radius * 4, self.radius * 4), pygame.SRCALPHA)
         pygame.draw.circle(glow_surface, (*PLAYER_COLOR, PLAYER_GLOW_ALPHA), (self.radius * 2, self.radius * 2), self.radius + 8)
         screen.blit(glow_surface, (x - self.radius * 2, y - self.radius * 2))
 
-        # hoofdcirkel
+        # Main body circle
         pygame.draw.circle(screen, self.color, (x, y), self.radius)
-        pygame.draw.circle(screen, PLAYER_CORE_COLOR, (x, y), self.radius - 4)     # lichtere kern
+        pygame.draw.circle(screen, PLAYER_CORE_COLOR, (x, y), self.radius - 4)     # Inner light core
 
-        # richtinglijn naar muis
+        # Line towards mouse (aim indicator)
         line_length = self.radius + 10
         end_x = x + int(math.cos(self._angle) * line_length)
         end_y = y + int(math.sin(self._angle) * line_length)

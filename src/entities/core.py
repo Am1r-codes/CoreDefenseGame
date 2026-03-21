@@ -35,7 +35,7 @@ class Brain:
         """
         line_color = BRAIN_LINE_COLOR
 
-        health_ratio = max(0, self.health / self.max_health)          # naam verandert hoe minder punten er zijn
+        health_ratio = max(0, self.health / self.max_health)          # Name changes as health decreases
         if health_ratio > 0.75:
             name = "Stable Model"
         elif health_ratio > 0.5:
@@ -45,7 +45,7 @@ class Brain:
         else:
             name = "Failing System"
 
-        base_red, base_green, base_blue = BRAIN_BASE_RGB              # roder worden naarmate score minder wordt
+        base_red, base_green, base_blue = BRAIN_BASE_RGB              # Becomes more red as the score decreases
 
         red = min(255, int(base_red + (1 - health_ratio) * 80))
         green = int(base_green * health_ratio)
@@ -53,31 +53,31 @@ class Brain:
 
         color = (red, green, blue)
 
-        # Titel boven het brein
+        # Title above the brain
         title_text = font.render(name, True, color)
         text_rect = title_text.get_rect(center=(self.x, self.y - 95))
         screen.blit(title_text, text_rect)
 
-        # Centrale hoofdvorm
+        # Main brain shape
         pygame.draw.ellipse(
             screen,
             color,
             (self.x - 60, self.y - 40, 120, 80),
         )
 
-        # Linker bobbels
+        # Left lobes
         pygame.draw.circle(screen, color, (self.x - 40, self.y - 20), 25)
         pygame.draw.circle(screen, color, (self.x - 50, self.y + 10), 22)
         pygame.draw.circle(screen, color, (self.x - 20, self.y + 20), 24)
         pygame.draw.circle(screen, color, (self.x - 20, self.y - 30), 20)
 
-        # Rechter bobbels
+        # Right lobes
         pygame.draw.circle(screen, color, (self.x + 40, self.y - 20), 25)
         pygame.draw.circle(screen, color, (self.x + 50, self.y + 10), 22)
         pygame.draw.circle(screen, color, (self.x + 20, self.y + 20), 24)
         pygame.draw.circle(screen, color, (self.x + 20, self.y - 30), 20)
 
-        # Middenlijn
+        # Middle line
         pygame.draw.line(
             screen,
             line_color,
