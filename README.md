@@ -14,6 +14,8 @@ In Core Collapse, the central AI core (visualized as a brain) is under attack fr
 
 Each enemy type has distinct speed, size, damage, and visual behavior that mirrors the AI concept it represents. Defend the core through escalating waves where new enemy types are gradually introduced, forcing the player to adapt their strategy.
 
+The game now also includes reactive visual effects and synthesized sound effects for shooting, enemy destruction, wave starts, core damage, and game-over transitions.
+
 ## How to Play
 
 | Action         | Control                          |
@@ -72,7 +74,6 @@ CoreDefenseGame/
 │   ├── __init__.py
 │   ├── settings.py              # All game constants and configuration
 │   ├── game.py                  # Main game loop, state management, coordination
-│   ├── effects.py               # Visual effects (placeholder)
 │   ├── entities/
 │   │   ├── __init__.py
 │   │   ├── core.py              # Brain entity with health and dynamic visuals
@@ -81,7 +82,9 @@ CoreDefenseGame/
 │   │   └── enemy_base.py        # EnemyBase + 4 enemy subclasses
 │   ├── managers/
 │   │   ├── __init__.py
-│   │   └── wave_manager.py      # Wave spawning and progression system
+│   │   ├── wave_manager.py      # Wave spawning and progression system
+│   │   ├── visual_effects_manager.py  # Muzzle flashes, impacts, wave pulses
+│   │   └── sound_manager.py     # Runtime synthesized gameplay SFX
 │   └── ui/
 │       ├── __init__.py
 │       ├── hud.py               # HUD: health, score, combo, enemy legend

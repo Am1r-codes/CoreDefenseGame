@@ -10,6 +10,8 @@ from src.entities.core import Brain
 from src.entities.player import Player
 from src.entities.projectile import ProjectileBase
 from src.managers.wave_manager import WaveManager
+from src.managers.visual_effects_manager import VisualEffectsManager
+from src.managers.sound_manager import SoundManager
 from src.ui.hud import HUD
 from src.ui.menu import MenuScreen
 from src.ui.game_over import GameOverScreen
@@ -41,16 +43,44 @@ class Game:
 
         self.font = pygame.font.SysFont(None, FONT_SIZE)
         self.hud = HUD(self.width, self.font)
+        self.vfx = VisualEffectsManager(self.font)
+        self.sound = SoundManager()
 
         # scherm-states: menu, playing (= self), game_over
         self.menu_screen = MenuScreen(self)
         self.game_over_screen = GameOverScreen(self)
         self.active_screen = self.menu_screen           # start op menu
+        self._resume_title_music_at_ms: int | None = None
+        self.play_title_music()
+
+    def play_sound(self, name: str) -> None:
+        """Play a named sound effect if audio is available."""
+        self.sound.play(name)
+
+    def play_title_music(self, fade_in_ms: int | None = None) -> None:
+        """Start title-screen music if an MP3 is available."""
+        self.sound.play_title_music(fade_in_ms)
+
+    def stop_title_music(self) -> None:
+        """Stop title-screen music."""
+        self.sound.stop_title_music()
 
     def start_playing(self) -> None:
         """Reset all gameplay objects and switch to the playing state."""
+        self._resume_title_music_at_ms = None
+        self.stop_title_music()
         self._reset_gameplay()
         self.active_screen = self                       # Game zelf is de playing screen
+        self.sound.play_game_music(fade_in_ms=600)
+
+    def update_game_over_music_transition(self) -> None:
+        """Resume title music shortly after game-over SFX has played."""
+        if self._resume_title_music_at_ms is None:
+            return
+
+        if pygame.time.get_ticks() >= self._resume_title_music_at_ms:
+            self.play_title_music(fade_in_ms=1200)
+            self._resume_title_music_at_ms = None
 
     def _reset_gameplay(self) -> None:
         """Initialize or reset all gameplay objects for a new game.
@@ -67,6 +97,8 @@ class Game:
         self.score = 0
         self._combo_multiplier = 1                      # combo vermenigvuldiger
         self._combo_timer = 0                           # frames sinds laatste kill
+        self._last_wave_number = 0
+        self._failing_music_stopped = False
 
         self.damage_texts = []                          # lijst waar je alle tijdelijke damage teksten opslaat
         self.score_texts = []                           # zwevende "+X pts" bij kill positie
@@ -88,6 +120,8 @@ class Game:
             projectile = self.player.try_shoot(mouse_x, mouse_y)
             if projectile is not None:
                 self.projectiles.append(projectile)
+                self.play_sound("shoot")
+                self.vfx.spawn_muzzle_flash(self.player.x, self.player.y, COLOR_CYAN)
 
     def update(self) -> None:                           # enemies bewegen + botsing checken + kogels bewegen + score updaten
         """Update all gameplay systems for one frame.
@@ -98,6 +132,9 @@ class Game:
         the brain's health reaches zero.
         """
         self.wave_manager.update(self.enemies)
+        if self.wave_manager.wave_number > self._last_wave_number:
+            self._last_wave_number = self.wave_manager.wave_number
+            self.play_sound("wave_start")
 
         keys = pygame.key.get_pressed()
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -123,6 +160,8 @@ class Game:
             for enemy in self.enemies:
                 if projectile.collides_with_enemy(enemy.x, enemy.y, enemy.radius):
                     self.enemies.remove(enemy)          # enemy verdwijnt bij hit
+                    self.play_sound("enemy_destroyed")
+                    self.vfx.spawn_enemy_destroyed(enemy.x, enemy.y, enemy.color)
 
                     # score toekennen met combo
                     points = enemy.score_value * self._combo_multiplier
@@ -151,6 +190,8 @@ class Game:
             enemy.update(self.brain.x, self.brain.y)
             if enemy.collides_with_brain(self.brain.x, self.brain.y, self.brain.radius):
                 self.brain.health -= enemy.damage
+                self.play_sound("core_hit")
+                self.vfx.spawn_core_hit(self.brain.x, self.brain.y, enemy.color)
 
                 self.damage_texts.append({
                     'x': DAMAGE_TEXT_X,                 # tonen even breedt bij health:..
@@ -173,8 +214,20 @@ class Game:
             st["timer"] -= 1
         self.score_texts = [s for s in self.score_texts if s["timer"] > 0]
 
+        # Trigger failing-system audio transition right after health updates.
+        health_ratio = self.brain.health / self.brain.max_health
+        if not self._failing_music_stopped and health_ratio <= 0.25 and self.brain.health > 0:
+            self.play_sound("boom")
+            self.sound.play_low_health_music(fade_in_ms=1000)
+            self._failing_music_stopped = True
+
+        self.vfx.update()
+
         # game over check
         if self.brain.health <= 0:
+            self.play_sound("game_over")
+            self.sound.stop_music(fadeout_ms=300)
+            self._resume_title_music_at_ms = pygame.time.get_ticks() + 900
             self.game_over_screen.set_results(self.score, self.wave_manager.wave_number)
             self.active_screen = self.game_over_screen
             return
@@ -219,6 +272,8 @@ class Game:
         for st in self.score_texts:
             score_surface = self.font.render(st["text"], True, st['color'])
             self.screen.blit(score_surface, (int(st["x"]), int(st["y"])))
+
+        self.vfx.draw(self.screen)
 
     def run(self) -> None:                              # main game loop: zolang running = True: steed opnieuw dit
         """Run the main game loop until the player quits.

@@ -62,6 +62,7 @@ class MenuScreen(GameScreen):
             if event.type == pygame.QUIT:
                 self.game.running = False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                self.game.play_sound("menu_start")
                 self.game.start_playing()
 
     def update(self) -> None:
