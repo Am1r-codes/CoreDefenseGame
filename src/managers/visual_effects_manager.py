@@ -7,7 +7,6 @@ class VisualEffectsManager:
     """Manages short-lived particles and glow overlays used during gameplay."""
 
     def __init__(self, font: pygame.font.Font) -> None:
-        self._font = font
         self._muzzle_flashes: list[dict] = []
         self._explosions: list[dict] = []
         self._core_hits: list[dict] = []
