@@ -3,6 +3,7 @@
 from src.game import Game
 
 def main() -> None:
+    """Initialize and run the Core Collapse game."""
     game = Game()
     game.run()
 
