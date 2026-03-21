@@ -43,13 +43,14 @@ class GameOverScreen(GameScreen):
                 self.game.running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
+                    self.game.play_sound("menu_start")
                     self.game.start_playing()
                 elif event.key == pygame.K_ESCAPE:
                     self.game.running = False
 
     def update(self) -> None:
-        """No update logic needed for the static game over screen."""
-        pass
+        """Advance delayed audio transition back to title music."""
+        self.game.update_game_over_music_transition()
 
     def draw(self) -> None:
         """Render the game over screen with results and instructions."""
