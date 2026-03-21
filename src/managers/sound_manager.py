@@ -28,6 +28,11 @@ class SoundManager:
     _LOW_HEALTH_FADEIN_MS = 1000
 
     def __init__(self) -> None:
+        """
+        Initialize the sound system, discover music files, and build the synthesized SFX bank.
+        This tries to initialize the mixer; if that fails, the manager is disabled.
+        It also locates music assets in the sounds directory and pre-computes tone-based effects.
+        """
         self._enabled = False
         self._sounds: dict[str, list[pygame.mixer.Sound]] = {}
         self._title_music_path: Path | None = None
@@ -61,9 +66,19 @@ class SoundManager:
         self._build_sfx_bank()
 
     def _find_sound_dir(self) -> Path:
+        """
+        Return the base directory where sound assets are expected to be located.
+        The path is resolved relative to the project root as 'assets/sounds'.
+        """
         return Path(__file__).resolve().parents[2] / "assets" / "sounds"
 
     def _find_music_file(self, exact_filename: str, hints: tuple[str, ...]) -> Path | None:
+        """
+        Find a music file by exact name or by matching filename hints.
+        First checks for the provided exact filename, then searches all '.mp3' files and
+        returns the first whose stem contains any of the given hint strings (case-insensitive),
+        or None if no suitable file is found.
+        """
         base_dir = self._find_sound_dir()
         if not base_dir.exists():
             return None
@@ -83,15 +98,32 @@ class SoundManager:
         return preferred[0] if preferred else None
 
     def _find_title_music_file(self) -> Path | None:
+        """
+        Locate the title screen music file if available.
+        Uses the predefined filename and hint set for title music to select an asset.
+        """
         return self._find_music_file(self._TITLE_MUSIC_FILENAME, self._TITLE_MUSIC_HINTS)
 
     def _find_game_music_file(self) -> Path | None:
+        """
+        Locate the in-game music file if available.
+        Uses the predefined filename and hint set for main game music to select an asset.
+        """
         return self._find_music_file(self._GAME_MUSIC_FILENAME, self._GAME_MUSIC_HINTS)
 
     def _find_low_health_music_file(self) -> Path | None:
+        """
+        Locate the low-health music file if available.
+        Uses the predefined filename and hint set for low-health or warning music to select an asset.
+        """
         return self._find_music_file(self._LOW_HEALTH_MUSIC_FILENAME, self._LOW_HEALTH_MUSIC_HINTS)
 
     def _find_game_over_sound_file(self) -> Path | None:
+        """
+        Locate a game-over sound effect file if available.
+        Prefers a specific game-over filename, but falls back to scanning common audio formats
+        and picking a file whose stem matches any game-over hint; returns None if no match is found.
+        """
         base_dir = self._find_sound_dir()
         if not base_dir.exists():
             return None
@@ -113,6 +145,11 @@ class SoundManager:
         return preferred[0] if preferred else None
 
     def _find_boom_sound_file(self) -> Path | None:
+        """
+        Locate a 'boom' style explosion or alarm sound file if available.
+        Prefers a specific boom filename, but falls back to scanning common audio formats
+        and picking a file whose stem matches any boom hint; returns None if no match is found.
+        """
         base_dir = self._find_sound_dir()
         if not base_dir.exists():
             return None
@@ -134,6 +171,11 @@ class SoundManager:
         return preferred[0] if preferred else None
 
     def _play_music_track(self, track_name: str, track_path: Path, volume: float, fade_in_ms: int = 0) -> None:
+        """
+        Start playback of a looping music track if it is not already playing.
+        Loads the given file path into the music mixer channel, applies the given volume,
+        and plays it on an infinite loop with an optional fade-in time in milliseconds.
+        """
         if self._current_music_track == track_name and pygame.mixer.music.get_busy():
             return
 
@@ -146,6 +188,12 @@ class SoundManager:
             self._current_music_track = None
 
     def _build_tone(self, frequency: float, duration_s: float, volume: float = 0.35) -> pygame.mixer.Sound:
+        """
+        Synthesize a short sine-wave tone as a Sound object.
+        Generates PCM samples at the current mixer sample rate using a sine wave at the
+        given frequency and duration, applies a simple attack/release envelope to reduce clicks,
+        and returns a pygame Sound with the requested volume.
+        """
         mixer_info = pygame.mixer.get_init()
         if mixer_info is None:
             raise RuntimeError("Mixer is not initialized")
@@ -174,6 +222,12 @@ class SoundManager:
         return pygame.mixer.Sound(buffer=samples.tobytes())
 
     def _build_sfx_bank(self) -> None:
+        """
+        Construct the library of named sound effects from synthesized tones and optional assets.
+        Creates a small set of tonal effects for events (shooting, destruction, UI, etc.),
+        performs basic per-event volume balancing, and replaces synthesized 'game_over' and 'boom'
+        sounds with real audio files when those assets are present.
+        """
         self._sounds = {
             "shoot": [
                 self._build_tone(940.0, 0.04, 0.20),
@@ -229,10 +283,20 @@ class SoundManager:
                 pass
 
     def _set_volume(self, name: str, volume: float) -> None:
+        """
+        Set the playback volume for all sound variants registered under a given name.
+        If the name is not present in the sound bank, this method has no effect.
+        """
         for sound in self._sounds.get(name, []):
             sound.set_volume(volume)
 
     def play(self, name: str) -> None:
+        """
+        Play a named sound effect if enabled and not on cooldown.
+        Randomly selects one of the available variants for the given name, checks a
+        per-event cooldown based on the last playback timestamp, and triggers the sound
+        if the cooldown has elapsed.
+        """
         if not self._enabled:
             return
 
@@ -250,24 +314,44 @@ class SoundManager:
         random.choice(options).play()
 
     def play_title_music(self, fade_in_ms: int | None = None) -> None:
+        """
+        Start or switch to looping title-screen music with an optional fade-in.
+        If a title track is available and sound is enabled, plays it on the music channel
+        with either the default fade-in duration or the provided override.
+        """
         if not self._enabled or self._title_music_path is None:
             return
         fade = self._TITLE_MUSIC_FADEIN_MS if fade_in_ms is None else fade_in_ms
         self._play_music_track("title", self._title_music_path, 0.45, fade)
 
     def play_game_music(self, fade_in_ms: int | None = None) -> None:
+        """
+        Start or switch to looping in-game music with an optional fade-in.
+        If a game track is available and sound is enabled, plays it on the music channel
+        with either the default fade-in duration or the provided override.
+        """
         if not self._enabled or self._game_music_path is None:
             return
         fade = self._GAME_MUSIC_FADEIN_MS if fade_in_ms is None else fade_in_ms
         self._play_music_track("game", self._game_music_path, 0.40, fade)
 
     def play_low_health_music(self, fade_in_ms: int | None = None) -> None:
+        """
+        Start or switch to looping low-health music with an optional fade-in.
+        If a low-health track is available and sound is enabled, plays it on the music channel
+        with either the default fade-in duration or the provided override.
+        """
         if not self._enabled or self._low_health_music_path is None:
             return
         fade = self._LOW_HEALTH_FADEIN_MS if fade_in_ms is None else fade_in_ms
         self._play_music_track("low_health", self._low_health_music_path, 0.42, fade)
 
     def stop_music(self, fadeout_ms: int | None = None) -> None:
+        """
+        Stop any currently playing music with an optional fade-out.
+        Uses the default fade-out time when no value is provided, then clears the
+        internal record of the currently active music track.
+        """
         if not self._enabled:
             return
 
@@ -276,8 +360,16 @@ class SoundManager:
         self._current_music_track = None
 
     def stop_title_music(self) -> None:
+        """
+        Convenience alias to stop any current music playback.
+        This is intended for stopping title music but simply delegates to stop_music.
+        """
         self.stop_music()
 
     @property
     def enabled(self) -> bool:
+        """
+        Whether the sound manager is currently active and able to play audio.
+        Returns True when the mixer was successfully initialized, False otherwise.
+        """
         return self._enabled

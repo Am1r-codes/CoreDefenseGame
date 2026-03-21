@@ -7,11 +7,23 @@ class VisualEffectsManager:
     """Manages short-lived particles and glow overlays used during gameplay."""
 
     def __init__(self, font: pygame.font.Font) -> None:
+        """
+        Initialize the visual effects manager.
+        Args:
+            font (pygame.font.Font): Font available for potential text-based effects (unused currently).
+        """
         self._muzzle_flashes: list[dict] = []
         self._explosions: list[dict] = []
         self._core_hits: list[dict] = []
 
     def spawn_muzzle_flash(self, x: float, y: float, color: tuple[int, int, int]) -> None:
+        """
+        Create a short flash of light simulating a weapon muzzle blast.
+        Args:
+            x (float): X-coordinate of the flash center.
+            y (float): Y-coordinate of the flash center.
+            color (tuple[int, int, int]): RGB color of the flash glow.
+        """
         self._muzzle_flashes.append({
             "x": x,
             "y": y,
@@ -22,6 +34,13 @@ class VisualEffectsManager:
         })
 
     def spawn_enemy_destroyed(self, x: float, y: float, color: tuple[int, int, int]) -> None:
+        """
+        Create an expanding explosion effect for destroyed enemies.
+        Args:
+            x (float): X-coordinate of the explosion center.
+            y (float): Y-coordinate of the explosion center.
+            color (tuple[int, int, int]): RGB color of the explosion glow.
+        """
         self._explosions.append({
             "x": x,
             "y": y,
@@ -33,6 +52,13 @@ class VisualEffectsManager:
         })
 
     def spawn_core_hit(self, x: float, y: float, color: tuple[int, int, int]) -> None:
+        """
+        Create an expanding glow to indicate the player's core being hit.
+        Args:
+            x (float): X-coordinate of the hit location.
+            y (float): Y-coordinate of the hit location.
+            color (tuple[int, int, int]): RGB color of the glow effect.
+        """
         self._core_hits.append({
             "x": x,
             "y": y,
@@ -43,6 +69,10 @@ class VisualEffectsManager:
         })
 
     def update(self) -> None:
+        """
+        Update all active effects. Decrease their timers and expand their radii
+        when appropriate. Expired effects are removed from their respective lists.
+        """
         for effect in self._muzzle_flashes:
             effect["timer"] -= 1
         self._muzzle_flashes = [e for e in self._muzzle_flashes if e["timer"] > 0]
@@ -66,6 +96,16 @@ class VisualEffectsManager:
         color: tuple[int, int, int],
         alpha: int,
     ) -> None:
+        """
+        Render a soft circular glow using an alpha-translucent surface.
+        Args:
+            screen (pygame.Surface): Target surface to draw on.
+            x (float): X-coordinate of the circle center.
+            y (float): Y-coordinate of the circle center.
+            radius (float): Radius of the glow circle.
+            color (tuple[int, int, int]): RGB color of the circle.
+            alpha (int): Transparency (0–255), where 0 is fully transparent.
+        """
         size = int(radius * 2) + 8
         glow = pygame.Surface((size, size), pygame.SRCALPHA)
         center = size // 2
@@ -73,6 +113,13 @@ class VisualEffectsManager:
         screen.blit(glow, (int(x - center), int(y - center)))
 
     def draw(self, screen: pygame.Surface) -> None:
+        """
+        Render all current visual effects on the given screen surface.
+        Each category of effect is drawn with intensity and radius determined
+        by its remaining lifetime.
+        Args:
+            screen (pygame.Surface): Target surface to draw the effects on.
+        """
         for flash in self._muzzle_flashes:
             life = flash["timer"] / flash["max_timer"]
             self._draw_glow_circle(
